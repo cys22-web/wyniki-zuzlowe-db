@@ -1,0 +1,16 @@
+{
+  "version": 4,
+  "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
+  "source_sha256": "235b40d0400f976819cc4a64653a2ae729f8fdabf3b7ae2d00f96e6d68fc8220",
+  "source_hash": "235b40d0400f",
+  "wzdb_sha256": "29ee229fc887697cb37b26d0eb888b41b76f5393a7f537b85ec19a34a14ffa2e",
+  "built": "2026-08-15T21:33:54Z",
+  "stats": {
+    "rows": 312955,
+    "players": 5442,
+    "seasons": 17,
+    "from": 2010,
+    "to": 2026,
+    "events": 34519
+  }
+}

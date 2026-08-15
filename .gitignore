@@ -1,0 +1,6 @@
+# Źródłowy skoroszyt jest pobierany tymczasowo i nigdy nie trafia do repozytorium.
+PL2.xlsm
+
+__pycache__/
+*.py[cod]
+.venv/

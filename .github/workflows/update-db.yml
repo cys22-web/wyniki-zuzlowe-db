@@ -1,0 +1,96 @@
+name: Aktualizacja bazy WZDB
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-wzdb-main
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Skonfiguruj Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Zainstaluj zależności
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Pobierz źródłowy XLSM
+        env:
+          SOURCE_URL: "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download"
+          FALLBACK_URL: "https://drive.usercontent.google.com/download?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download&confirm=t"
+          XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+        run: |
+          if ! gdown --fuzzy "$SOURCE_URL" --output "$XLSM_PATH"; then
+            curl --fail --location --retry 3 --retry-all-errors \
+              "$FALLBACK_URL" --output "$XLSM_PATH"
+          fi
+          python - "$XLSM_PATH" <<'PY'
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          if path.stat().st_size < 1_000_000 or path.read_bytes()[:2] != b"PK":
+              raise SystemExit("Pobrany plik nie jest prawidłowym skoroszytem XLSM")
+          PY
+
+      - name: Sprawdź, czy źródło się zmieniło
+        id: source
+        env:
+          XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+        run: |
+          source_sha256="$(sha256sum "$XLSM_PATH" | cut -d ' ' -f 1)"
+          current_sha256="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("db/version.json")
+          if path.exists():
+              print(json.loads(path.read_text(encoding="utf-8")).get("source_sha256", ""))
+          PY
+          )"
+          echo "sha256=$source_sha256" >> "$GITHUB_OUTPUT"
+          if [ "$source_sha256" = "$current_sha256" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Źródło nie zmieniło się; kończę bez przebudowy i commita."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Zbuduj WZDB v4
+        if: steps.source.outputs.changed == 'true'
+        env:
+          XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+        run: |
+          python scripts/build_wzdb.py "$XLSM_PATH" \
+            --output db/latest.wzdb \
+            --version-file db/version.json
+
+      - name: Commit i push do main
+        if: steps.source.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- db/latest.wzdb db/version.json
+          if git diff --cached --quiet; then
+            echo "Brak zmian do zapisania."
+            exit 0
+          fi
+          git commit -m "chore(db): update speedway results database"
+          git push origin HEAD:main
