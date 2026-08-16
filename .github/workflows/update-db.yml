@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: Wymuś przebudowę mimo braku zmian źródła i generatora
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -50,31 +56,40 @@ jobs:
               raise SystemExit("Pobrany plik nie jest prawidłowym skoroszytem XLSM")
           PY
 
-      - name: Sprawdź, czy źródło się zmieniło
-        id: source
+      - name: Sprawdź, czy źródło lub generator się zmieniły
+        id: rebuild
         env:
           XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+          FORCE_REBUILD: ${{ inputs.force_rebuild || 'false' }}
         run: |
           source_sha256="$(sha256sum "$XLSM_PATH" | cut -d ' ' -f 1)"
-          current_sha256="$(python - <<'PY'
+          generator_sha256="$(sha256sum scripts/build_wzdb.py | cut -d ' ' -f 1)"
+          readarray -t current_hashes < <(python - <<'PY'
           import json
           from pathlib import Path
 
           path = Path("db/version.json")
           if path.exists():
-              print(json.loads(path.read_text(encoding="utf-8")).get("source_sha256", ""))
+              version = json.loads(path.read_text(encoding="utf-8"))
+              print(version.get("source_sha256", ""))
+              print(version.get("generator_sha256", ""))
+          else:
+              print()
+              print()
           PY
-          )"
+          )
           echo "sha256=$source_sha256" >> "$GITHUB_OUTPUT"
-          if [ "$source_sha256" = "$current_sha256" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Źródło nie zmieniło się; kończę bez przebudowy i commita."
-          else
+          if [ "$FORCE_REBUILD" = "true" ] || \
+             [ "$source_sha256" != "${current_hashes[0]}" ] || \
+             [ "$generator_sha256" != "${current_hashes[1]}" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Źródło i generator nie zmieniły się; kończę bez przebudowy i commita."
           fi
 
       - name: Zbuduj WZDB v4
-        if: steps.source.outputs.changed == 'true'
+        if: steps.rebuild.outputs.changed == 'true'
         env:
           XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
         run: |
@@ -83,7 +98,7 @@ jobs:
             --version-file db/version.json
 
       - name: Commit i push do main
-        if: steps.source.outputs.changed == 'true'
+        if: steps.rebuild.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

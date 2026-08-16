@@ -32,8 +32,9 @@ class StringTable:
     """Insertion-ordered string table used by records and player metadata."""
 
     def __init__(self) -> None:
-        self.values: list[str] = []
-        self._indices: dict[str, int] = {}
+        # Index 0 is the empty string in the format consumed by the app.
+        self.values: list[str] = [""]
+        self._indices: dict[str, int] = {"": 0}
 
     def intern(self, value: str) -> int:
         index = self._indices.get(value)
@@ -75,8 +76,8 @@ def birth_date_value(value: Any) -> Any:
     return value
 
 
-def record_value(value: Any, strings: StringTable) -> Any:
-    """Convert a worksheet cell to a JSON value, interning textual values."""
+def record_value(value: Any, strings: StringTable) -> int | None:
+    """Encode a result cell as a string-table reference used by the app."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -87,10 +88,12 @@ def record_value(value: Any, strings: StringTable) -> Any:
     if isinstance(value, (date, time)):
         return strings.intern(value.isoformat())
     if isinstance(value, timedelta):
-        return value.total_seconds()
+        value = value.total_seconds()
     if isinstance(value, float) and not math.isfinite(value):
         return None
-    return value
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    return strings.intern(str(value))
 
 
 def event_component(value: Any) -> str:
@@ -291,6 +294,7 @@ def main() -> int:
         "+00:00", "Z"
     )
     source_sha256 = sha256_file(source_path)
+    generator_sha256 = sha256_file(Path(__file__).resolve())
     database = build_database(source_path, args.source_url, built)
     validate_expectations(database["stats"], args)
 
@@ -306,6 +310,7 @@ def main() -> int:
         "source": args.source_url,
         "source_sha256": source_sha256,
         "source_hash": source_sha256[:12],
+        "generator_sha256": generator_sha256,
         "wzdb_sha256": wzdb_sha256,
         "built": built,
         "stats": database["stats"],

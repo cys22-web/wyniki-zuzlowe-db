@@ -7,9 +7,9 @@ Repozytorium przechowuje automatycznie budowaną bazę `db/latest.wzdb` dla apli
 Workflow [`.github/workflows/update-db.yml`](.github/workflows/update-db.yml) uruchamia się raz na godzinę (w 17. minucie) oraz ręcznie przez `workflow_dispatch`.
 
 1. Pobiera `PL2.xlsm` przez `gdown`; awaryjnie korzysta bezpośrednio z `drive.usercontent.google.com`.
-2. Oblicza pełny SHA-256 źródła i porównuje go z `source_sha256` w `db/version.json`.
-3. Jeśli hash jest identyczny, kończy pracę bez przebudowy i bez commita.
-4. Jeśli źródło się zmieniło, uruchamia `scripts/build_wzdb.py`, aktualizuje pliki w `db/`, commituje je i pushuje do `main`.
+2. Oblicza SHA-256 źródła i generatora oraz porównuje je z hashami w `db/version.json`.
+3. Jeśli oba hashe są identyczne, kończy pracę bez przebudowy i bez commita.
+4. Jeśli źródło lub generator się zmieniły, uruchamia `scripts/build_wzdb.py`, aktualizuje pliki w `db/`, commituje je i pushuje do `main`. Ręczne uruchomienie pozwala też zaznaczyć `force_rebuild`.
 
 Workflow ma tylko wymagane uprawnienie `contents: write`. Źródłowy `PL2.xlsm` jest plikiem tymczasowym, znajduje się w `.gitignore` i nie jest zapisywany w repozytorium.
 
