@@ -4,9 +4,9 @@ Repozytorium przechowuje automatycznie budowaną bazę `db/latest.wzdb` dla apli
 
 ## Jak działa automat
 
-Workflow [`.github/workflows/update-db.yml`](.github/workflows/update-db.yml) uruchamia się raz na godzinę (w 17. minucie) oraz ręcznie przez `workflow_dispatch`.
+Workflow [`.github/workflows/update-db.yml`](.github/workflows/update-db.yml) uruchamia się co 15 minut oraz ręcznie przez `workflow_dispatch`. GitHub może opóźnić start zadania cyklicznego, dlatego aplikacja nadal korzysta z ostatniej poprawnie opublikowanej bazy do czasu zakończenia synchronizacji.
 
-1. Pobiera `PL2.xlsm` przez `gdown`; awaryjnie korzysta bezpośrednio z `drive.usercontent.google.com`.
+1. Pobiera `PL2.xlsm` bezpośrednio z `drive.usercontent.google.com`, używając unikalnego parametru żądania i nagłówków `no-cache`; awaryjnie korzysta z `gdown`.
 2. Oblicza SHA-256 źródła i generatora oraz porównuje je z hashami w `db/version.json`.
 3. Jeśli oba hashe są identyczne, kończy pracę bez przebudowy i bez commita.
 4. Jeśli źródło lub generator się zmieniły, uruchamia `scripts/build_wzdb.py`, aktualizuje pliki w `db/`, commituje je i pushuje do `main`. Ręczne uruchomienie pozwala też zaznaczyć `force_rebuild`.
@@ -23,7 +23,7 @@ Workflow ma tylko wymagane uprawnienie `contents: write`. Źródłowy `PL2.xlsm`
 - `years` — rekordy wyników pogrupowane według sezonu,
 - `events` — indeks wydarzeń dla każdego sezonu; wpis ma postać `[indeks_pierwszego_rekordu, liczba_rekordów]`.
 
-`db/version.json` zawiera hash źródła, jego skróconą wersję, hash wynikowego WZDB, czas budowy i statystyki kontrolne.
+`db/version.json` zawiera hash źródła, jego skróconą wersję, hash wynikowego WZDB, czas budowy, dostępny nagłówek `Last-Modified` z Google Drive i statystyki kontrolne. SHA-256 zawartości pozostaje głównym identyfikatorem wersji; data modyfikacji służy diagnostyce.
 
 ## Budowa lokalna
 

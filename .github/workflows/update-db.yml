@@ -2,7 +2,7 @@ name: Aktualizacja bazy WZDB
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -38,14 +38,19 @@ jobs:
         run: python -m pip install --requirement requirements.txt
 
       - name: Pobierz źródłowy XLSM
+        id: source
         env:
           SOURCE_URL: "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download"
           FALLBACK_URL: "https://drive.usercontent.google.com/download?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download&confirm=t"
           XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+          HEADERS_PATH: ${{ runner.temp }}/drive-headers.txt
+          REQUEST_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
         run: |
-          if ! gdown --fuzzy "$SOURCE_URL" --output "$XLSM_PATH"; then
-            curl --fail --location --retry 3 --retry-all-errors \
-              "$FALLBACK_URL" --output "$XLSM_PATH"
+          if ! curl --fail --location --retry 3 --retry-all-errors \
+            --header "Cache-Control: no-cache" --header "Pragma: no-cache" \
+            --dump-header "$HEADERS_PATH" \
+            "$FALLBACK_URL&cachebust=$REQUEST_NONCE" --output "$XLSM_PATH"; then
+            gdown --fuzzy "$SOURCE_URL&cachebust=$REQUEST_NONCE" --output "$XLSM_PATH"
           fi
           python - "$XLSM_PATH" <<'PY'
           from pathlib import Path
@@ -55,6 +60,20 @@ jobs:
           if path.stat().st_size < 1_000_000 or path.read_bytes()[:2] != b"PK":
               raise SystemExit("Pobrany plik nie jest prawidłowym skoroszytem XLSM")
           PY
+          source_modified="$(python - "$HEADERS_PATH" <<'PY'
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          if path.exists():
+              for line in reversed(path.read_text(encoding="utf-8", errors="replace").splitlines()):
+                  if line.lower().startswith("last-modified:"):
+                      print(line.split(":", 1)[1].strip())
+                      break
+          PY
+          )"
+          echo "modified=$source_modified" >> "$GITHUB_OUTPUT"
+          echo "Google Drive Last-Modified: ${source_modified:-brak w odpowiedzi}"
 
       - name: Sprawdź, czy źródło lub generator się zmieniły
         id: rebuild
@@ -64,6 +83,7 @@ jobs:
         run: |
           source_sha256="$(sha256sum "$XLSM_PATH" | cut -d ' ' -f 1)"
           generator_sha256="$(sha256sum scripts/build_wzdb.py | cut -d ' ' -f 1)"
+          echo "Google Drive source SHA-256: $source_sha256"
           readarray -t current_hashes < <(python - <<'PY'
           import json
           from pathlib import Path
@@ -92,10 +112,12 @@ jobs:
         if: steps.rebuild.outputs.changed == 'true'
         env:
           XLSM_PATH: ${{ runner.temp }}/PL2.xlsm
+          SOURCE_MODIFIED: ${{ steps.source.outputs.modified }}
         run: |
           python scripts/build_wzdb.py "$XLSM_PATH" \
             --output db/latest.wzdb \
-            --version-file db/version.json
+            --version-file db/version.json \
+            --source-modified "$SOURCE_MODIFIED"
 
       - name: Commit i push do main
         if: steps.rebuild.outputs.changed == 'true'

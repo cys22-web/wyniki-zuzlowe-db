@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from scripts.build_wzdb import StringTable, record_value
 
@@ -34,6 +35,16 @@ class RecordValueTests(unittest.TestCase):
 
         self.assertIsNone(record_value(None, strings))
         self.assertIsNone(record_value("   ", strings))
+
+
+class UpdateWorkflowTests(unittest.TestCase):
+    def test_drive_download_bypasses_cache_and_checks_frequently(self) -> None:
+        workflow = Path(".github/workflows/update-db.yml").read_text(encoding="utf-8")
+
+        self.assertIn('cron: "*/15 * * * *"', workflow)
+        self.assertIn("Cache-Control: no-cache", workflow)
+        self.assertIn("cachebust=$REQUEST_NONCE", workflow)
+        self.assertIn("Google Drive source SHA-256", workflow)
 
 
 if __name__ == "__main__":

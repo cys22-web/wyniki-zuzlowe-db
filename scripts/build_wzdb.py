@@ -275,6 +275,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=Path("db/latest.wzdb"))
     parser.add_argument("--version-file", type=Path, default=Path("db/version.json"))
     parser.add_argument("--source-url", default=DEFAULT_SOURCE_URL)
+    parser.add_argument(
+        "--source-modified",
+        help="Wartość Last-Modified zwrócona przy pobieraniu źródła z Google Drive",
+    )
     parser.add_argument("--expect-rows", type=int)
     parser.add_argument("--expect-players", type=int)
     parser.add_argument("--expect-seasons", type=int)
@@ -315,6 +319,8 @@ def main() -> int:
         "built": built,
         "stats": database["stats"],
     }
+    if args.source_modified:
+        version["source_modified"] = args.source_modified
     atomic_write(
         args.version_file,
         (json.dumps(version, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
