@@ -1,18 +1,18 @@
 {
   "version": 4,
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
-  "source_sha256": "82bb3953b4be51abb436f1c2703df88ded372aa3dcfc0d9f1c4ae0762e9b912d",
-  "source_hash": "82bb3953b4be",
+  "source_sha256": "8a6d7c0f22ffb629308916109e8570aaef425de210b1dfa95344b3d85c0ce232",
+  "source_hash": "8a6d7c0f22ff",
   "generator_sha256": "dcfc400f163129262b37a0b2d3f5eacdfb3a460b68ab0f48e0a7023ab1201621",
-  "wzdb_sha256": "0e0b5811daf4dd77efa05fd0311f499de5e380f9b4141d5d816a995aa6c6dc62",
-  "built": "2026-08-19T20:00:05Z",
+  "wzdb_sha256": "214434764ea515bcc04902e47eaf0b4c93c8ba83d38f614a7bb1331a7b2367de",
+  "built": "2026-08-20T19:46:52Z",
   "stats": {
-    "rows": 315094,
-    "players": 5429,
+    "rows": 315365,
+    "players": 5432,
     "seasons": 17,
     "from": 2010,
     "to": 2026,
-    "events": 34776
+    "events": 34797
   },
-  "source_modified": "Wed, 19 Aug 2026 19:38:48 GMT"
+  "source_modified": "Thu, 20 Aug 2026 19:45:21 GMT"
 }
