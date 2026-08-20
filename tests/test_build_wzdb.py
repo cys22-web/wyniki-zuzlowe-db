@@ -1,7 +1,9 @@
 import unittest
 from pathlib import Path
 
-from scripts.build_wzdb import StringTable, record_value
+from openpyxl import Workbook
+
+from scripts.build_wzdb import StringTable, build_database, record_value
 
 
 class RecordValueTests(unittest.TestCase):
@@ -45,6 +47,46 @@ class UpdateWorkflowTests(unittest.TestCase):
         self.assertIn("Cache-Control: no-cache", workflow)
         self.assertIn("cachebust=$REQUEST_NONCE", workflow)
         self.assertIn("Google Drive source SHA-256", workflow)
+        self.assertIn("sha256sum data/event_dates_2026.json", workflow)
+        self.assertIn("date_map_sha256", workflow)
+
+
+class RecordLayoutTests(unittest.TestCase):
+    def test_column_n_is_appended_without_moving_existing_fields(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "source.xlsx"
+            workbook = Workbook()
+            players = workbook.active
+            players.title = "Zawodnicy"
+            players.append(["Zawodnik", "Narodowość", "Data urodzenia"])
+            players.append(["Test Rider", "Polska", None])
+            for year in range(2010, 2027):
+                sheet = workbook.create_sheet(str(year))
+                if year == 2026:
+                    values = {
+                        2: "Test Rider", 3: "11+2", 4: "3,3,2*,2,1*",
+                        7: "Home", 8: "Away", 9: "49-41", 10: "Liga",
+                        11: "Krosno", 12: "Rozgrywki", 13: "1 runda",
+                        14: "95", 15: "500cc", 16: "Uwagi",
+                    }
+                    for column, value in values.items():
+                        sheet.cell(4, column, value)
+            workbook.save(source)
+            database = build_database(source, "test", "2026-08-20T00:00:00Z")
+
+        record = database["years"]["2026"][0]
+        decoded = [None if value is None else database["strings"][value] for value in record[1:]]
+        self.assertEqual(len(record), 15)
+        self.assertEqual(decoded[0], "11+2")
+        self.assertEqual(decoded[1], "3,3,2*,2,1*")
+        self.assertEqual(decoded[11], "500cc")
+        self.assertEqual(decoded[12], "Uwagi")
+        self.assertEqual(decoded[13], "95")
+
+    def test_missing_date_map_keeps_generation_compatible(self) -> None:
+        self.assertEqual(record_value(None, StringTable()), None)
 
 
 if __name__ == "__main__":

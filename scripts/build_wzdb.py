@@ -11,11 +11,25 @@ import math
 import os
 import tempfile
 import unicodedata
+from collections import Counter
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
 from openpyxl import load_workbook
+
+try:
+    from scripts.event_dates import (
+        DEFAULT_EVENT_DATES,
+        event_mapping_key,
+        load_event_date_mapping,
+    )
+except ModuleNotFoundError:  # Direct execution: python scripts/build_wzdb.py
+    from event_dates import (
+        DEFAULT_EVENT_DATES,
+        event_mapping_key,
+        load_event_date_mapping,
+    )
 
 
 FORMAT_VERSION = 4
@@ -121,6 +135,19 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def generation_input_sha256(paths: Iterable[Path]) -> str:
+    """Hash every file that can change the generated WZDB representation."""
+    digest = hashlib.sha256()
+    for path in paths:
+        resolved = path.resolve()
+        data = resolved.read_bytes()
+        digest.update(resolved.name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(len(data).to_bytes(8, "big"))
+        digest.update(data)
+    return digest.hexdigest()
+
+
 def atomic_write(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
@@ -148,7 +175,12 @@ def iter_player_rows(sheet: Any) -> Iterable[tuple[Any, Any, Any]]:
             yield name, nationality, born
 
 
-def build_database(source_path: Path, source_url: str, built: str) -> dict[str, Any]:
+def build_database(
+    source_path: Path,
+    source_url: str,
+    built: str,
+    event_dates: dict[str, str] | None = None,
+) -> dict[str, Any]:
     workbook = load_workbook(
         source_path,
         read_only=True,
@@ -180,18 +212,21 @@ def build_database(source_path: Path, source_url: str, built: str) -> dict[str, 
             player_by_normalized_name.setdefault(normalized, player_id)
 
         years: dict[str, list[list[Any]]] = {}
-        events: dict[str, list[list[int]]] = {}
+        events: dict[str, list[list[Any]]] = {}
         total_rows = 0
         total_events = 0
+        approved_event_dates = event_dates or {}
 
         for year in range(FIRST_SEASON, LAST_SEASON + 1):
             year_key = str(year)
             records: list[list[Any]] = []
             year_events: list[list[int]] = []
             current_event_key: tuple[str, ...] | None = None
+            event_occurrences: Counter[tuple[str, ...]] = Counter()
 
-            # B:P is 15 cells. The record uses B as the player lookup, C:M,
-            # skips N, and then appends O:P.
+            # B:P is 15 cells. Existing record indices remain unchanged:
+            # B is the player lookup, C:M and O:P become row[1]..row[13].
+            # Source column N is appended as the optional start number at row[14].
             for cells in workbook[year_key].iter_rows(
                 min_row=4, min_col=2, max_col=16, values_only=True
             ):
@@ -209,7 +244,7 @@ def build_database(source_path: Path, source_url: str, built: str) -> dict[str, 
                         [player_name, strings.intern(""), None, normalized]
                     )
 
-                raw_record_values = [*cells[1:12], cells[13], cells[14]]
+                raw_record_values = [*cells[1:12], cells[13], cells[14], cells[12]]
                 record = [player_id]
                 record.extend(record_value(value, strings) for value in raw_record_values)
                 records.append(record)
@@ -221,7 +256,16 @@ def build_database(source_path: Path, source_url: str, built: str) -> dict[str, 
                 if event_key == current_event_key:
                     year_events[-1][1] += 1
                 else:
-                    year_events.append([record_index, 1])
+                    occurrence = event_occurrences[event_key]
+                    event_occurrences[event_key] += 1
+                    mapping_key = event_mapping_key(year_key, event_key, occurrence)
+                    event_date = approved_event_dates.get(mapping_key)
+                    event_ref: list[Any] = [record_index, 1]
+                    if event_date:
+                        # WZDB v4 backward-compatible event extension:
+                        # [start, count, fragmentCount, teams, eventDateStringIndex]
+                        event_ref.extend([1, [], strings.intern(event_date)])
+                    year_events.append(event_ref)
                     current_event_key = event_key
 
             years[year_key] = records
@@ -251,6 +295,58 @@ def build_database(source_path: Path, source_url: str, built: str) -> dict[str, 
         workbook.close()
 
 
+def event_date_assignment_stats(
+    database: dict[str, Any],
+    event_dates: dict[str, str],
+    season: str = "2026",
+) -> dict[str, Any]:
+    """Audit exact mapping-key coverage without using mutable event indexes."""
+    try:
+        from scripts.match_event_dates import decode_events
+    except ModuleNotFoundError:  # Direct execution: python scripts/build_wzdb.py
+        from match_event_dates import decode_events
+
+    logical_events = decode_events(database, season)
+    source_keys = {
+        physical.mapping_key
+        for event in logical_events
+        for physical in event.physical
+    }
+    dated_events = 0
+    ambiguous_events = 0
+    unmatched_events = 0
+    dated_records = 0
+    ambiguous_records = 0
+    unmatched_records = 0
+    for event in logical_events:
+        fragment_dates = [event_dates.get(item.mapping_key) for item in event.physical]
+        known_dates = {value for value in fragment_dates if value}
+        if len(known_dates) == 1 and all(fragment_dates):
+            dated_events += 1
+            dated_records += event.count
+        elif known_dates:
+            ambiguous_events += 1
+            ambiguous_records += event.count
+        else:
+            unmatched_events += 1
+            unmatched_records += event.count
+    return {
+        "season": int(season),
+        "logical_events": len(logical_events),
+        "records": len(database["years"][season]),
+        "source_mapping_keys": len(source_keys),
+        "date_map_mapping_keys": len(event_dates),
+        "matching_mapping_keys": len(source_keys & set(event_dates)),
+        "stale_mapping_keys": len(set(event_dates) - source_keys),
+        "dated_events": dated_events,
+        "ambiguous_events": ambiguous_events,
+        "unmatched_events": unmatched_events,
+        "dated_records": dated_records,
+        "ambiguous_records": ambiguous_records,
+        "unmatched_records": unmatched_records,
+    }
+
+
 def validate_expectations(stats: dict[str, int], args: argparse.Namespace) -> None:
     expectations = {
         "rows": args.expect_rows,
@@ -276,6 +372,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--version-file", type=Path, default=Path("db/version.json"))
     parser.add_argument("--source-url", default=DEFAULT_SOURCE_URL)
     parser.add_argument(
+        "--event-dates",
+        type=Path,
+        default=DEFAULT_EVENT_DATES,
+        help="Zatwierdzona mapa kluczy wydarzeń na daty ISO",
+    )
+    parser.add_argument(
         "--source-modified",
         help="Wartość Last-Modified zwrócona przy pobieraniu źródła z Google Drive",
     )
@@ -298,8 +400,17 @@ def main() -> int:
         "+00:00", "Z"
     )
     source_sha256 = sha256_file(source_path)
-    generator_sha256 = sha256_file(Path(__file__).resolve())
-    database = build_database(source_path, args.source_url, built)
+    event_dates_path = args.event_dates.resolve()
+    event_dates = load_event_date_mapping(event_dates_path)
+    generator_inputs = [
+        Path(__file__).resolve(),
+        Path(__file__).with_name("event_dates.py"),
+        Path(__file__).with_name("match_event_dates.py"),
+    ]
+    generator_sha256 = generation_input_sha256(generator_inputs)
+    database = build_database(source_path, args.source_url, built, event_dates)
+    date_stats = event_date_assignment_stats(database, event_dates)
+    database["dateStats"] = date_stats
     validate_expectations(database["stats"], args)
 
     json_bytes = json.dumps(
@@ -315,6 +426,15 @@ def main() -> int:
         "source_sha256": source_sha256,
         "source_hash": source_sha256[:12],
         "generator_sha256": generator_sha256,
+        "date_map_sha256": (
+            sha256_file(event_dates_path) if event_dates_path.is_file() else None
+        ),
+        # Retain the earlier field for consumers that already inspected it.
+        "event_dates_sha256": (
+            sha256_file(event_dates_path) if event_dates_path.is_file() else None
+        ),
+        "dated_event_fragments": date_stats["matching_mapping_keys"],
+        "date_stats": date_stats,
         "wzdb_sha256": wzdb_sha256,
         "built": built,
         "stats": database["stats"],

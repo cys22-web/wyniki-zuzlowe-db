@@ -1,0 +1,871 @@
+{
+  "version": 1,
+  "season": 2026,
+  "cutoff": "2026-08-17",
+  "source_file": "event_dates_2026_top30_candidates.json",
+  "source_sha256": "d67432712e32672b38978ded2b59903ed4186baac4cfe7a37eece50add53e558",
+  "source_wzdb_sha256": "551b5f4776c2dad130295fada1f269c80b25bd7ff2baba565ccddd90b6d219ae",
+  "venue_aliases": {
+    "Gorican": "Donji Kraljevec",
+    "Middlesbrough": "Redcar / ECCO Arena"
+  },
+  "events": [
+    {
+      "event_id": 412,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-22",
+      "basis": "FIM 2026 calendar",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "Polska",
+        "score": "45",
+        "league": "International",
+        "track": "Praga",
+        "competition": "SoN 2",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 5730,
+      "last_record_index": 5753,
+      "record_count": 24,
+      "mapping_keys": [
+        "e99444f54051dbb2cd35367a4eac1e5cfca625a8941ca12aee1bb3a6730244ac",
+        "e4fc9805f2622b381ef819378f610f9f5a1d0bea17e2b9b1961cbc3c1f456bd3",
+        "938e673fdb8d29b4eb4271eabf541377399d0255bf24f6b1e70b740c3445a853",
+        "6931dcbee48c352a39364d27c098cf0a39a21b2bbd9ca11cd26560b1c61625c2",
+        "d4b774682697b145af1f1db1e904c0944d3a260040fcc20a37982a93eae3a048",
+        "37294bd1de8a774667d4c09efbf33f64307ac8dc6665a6a1f1e89ee559a75065",
+        "3edabe9c95b784f693811ec3d915fcaf024d525105d9d8d29da7606c758ab50d",
+        "74d4c35e4aa29b546374c25a26f123cc0eef30072cc2766280db05437bbc6c44"
+      ],
+      "roster_count": 24,
+      "roster_sha256": "64f8352c0132ef4bf83f1786f43491e9918a107c4818905174aa2c11b6e61a1e"
+    },
+    {
+      "event_id": 598,
+      "original_status": "AMBIGUOUS",
+      "status": "HIGH",
+      "date": "2026-06-16",
+      "basis": "PZM: półfinał 1 i 2 w dwa kolejne dni; trzeba rozpoznać po zawodnikach",
+      "review": "pełna obsada i punktacja zgodna z FIM SGP3 Semi-Final 1",
+      "source_url": "https://fimspeedway.com/news/slovak-star-ziman-goes-unbeaten-in-fim-sgp3-semi-final-1",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Miniżużel",
+        "track": "Pardubice",
+        "competition": "SGP3",
+        "round": "Półfinał",
+        "capacity": "250 ccm"
+      },
+      "first_record_index": 8442,
+      "last_record_index": 8458,
+      "record_count": 17,
+      "mapping_keys": [
+        "6e395c010c7b8528cb8bcd65e0ee8ffdcfb710cf39b7601aa207a5067f1f8b5e"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "6f65859cac44bc57fae206e340f1a1299f4aa5ff26785e6c33126e94f8ef7402"
+    },
+    {
+      "event_id": 624,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-19",
+      "basis": "FIM/PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Miniżużel",
+        "track": "Wrocław",
+        "competition": "SGP3",
+        "round": "Finał",
+        "capacity": "250 ccm"
+      },
+      "first_record_index": 8814,
+      "last_record_index": 8830,
+      "record_count": 17,
+      "mapping_keys": [
+        "41582c99ea3c0fcf550ef6867baeb58d49a19ffa646060e7034a93b20adae1ac"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "4e4d40e8238662dba4e504c523b4f7e43d309164acae2121d4b05dd5e4f9c100"
+    },
+    {
+      "event_id": 582,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-09",
+      "basis": "FIM provisional",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Longtrack",
+        "track": "Roden",
+        "competition": "FIM Long Track U23 World Cup",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 8221,
+      "last_record_index": 8236,
+      "record_count": 16,
+      "mapping_keys": [
+        "adfb66858ae54ea643a3a22ecc7c31cae5975de043534f2c6e8aa199a9c18a36"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "4a5d140decdca42370198f938792b573af4149708d2efe30d6ed261dcb08fd16"
+    },
+    {
+      "event_id": 740,
+      "original_status": "HIGH_WITH_ALIAS",
+      "status": "HIGH",
+      "date": "2026-07-04",
+      "basis": "FIM: Donji Kraljevec; potwierdzić alias Gorican",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {
+        "Gorican": "Donji Kraljevec"
+      },
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "International",
+        "track": "Gorican",
+        "competition": "FIM Women’s Speedway World Cup",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 10511,
+      "last_record_index": 10520,
+      "record_count": 10,
+      "mapping_keys": [
+        "546e3ccb928e5ed0744034712c3414920bc8c556ce2fa0d3a184dccd4924f524"
+      ],
+      "roster_count": 10,
+      "roster_sha256": "58f015bdc400609ec4ed7e4a89c3badcf1519a67ede355cd48ab4c2b50663b96"
+    },
+    {
+      "event_id": 497,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-31",
+      "basis": "FIM Europe",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Grasstrack",
+        "track": "Bielefeld",
+        "competition": "IME",
+        "round": "Challenge",
+        "capacity": ""
+      },
+      "first_record_index": 7042,
+      "last_record_index": 7059,
+      "record_count": 18,
+      "mapping_keys": [
+        "26e124a2b194bb5c128bdc02c372c30d24dcd2c90e21b408e3c70c905def607c"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "497510b4fcfb848a7748cacfd2483f48823d643da843f7f9bb6e86e801e3ceff"
+    },
+    {
+      "event_id": 929,
+      "original_status": "VERIFY_CATEGORY",
+      "status": "HIGH",
+      "date": "2026-08-02",
+      "basis": "FIM Europe: European 250cc Youth final",
+      "review": "European 250cc Youth Final; obsada zawiera komplet dziesięciu kwalifikantów z #919",
+      "source_url": "https://pzm.pl/pliki/zg/zuzel/2026/2026.03.31-kalendarz-2026v10.pdf",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Miniżużel",
+        "track": "Żarnowica",
+        "competition": "IME",
+        "round": "Finał",
+        "capacity": "250 ccm"
+      },
+      "first_record_index": 13228,
+      "last_record_index": 13245,
+      "record_count": 18,
+      "mapping_keys": [
+        "d8465d5cb7f34c147027989d2359a41bd9aaaedee30ebd718c68b601469ec896"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "be11704106e204129dadadfad0e7df65a2ee726e9b2ab724a520333702105069"
+    },
+    {
+      "event_id": 114,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-07",
+      "basis": "Autoklub ČR: nominační závod pro MS/ME",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Czechy",
+        "track": "Praga",
+        "competition": "SEC & GP",
+        "round": "Eliminacje",
+        "capacity": ""
+      },
+      "first_record_index": 1375,
+      "last_record_index": 1391,
+      "record_count": 17,
+      "mapping_keys": [
+        "9d91f57ae8e85b81b90dcb8ef625a1186b859f58d68b1b9d23072a0aa6e368ad"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "a60feb084e644b8d5830465cccaea3f67ae67d73de278c792aa1a1f33281c068"
+    },
+    {
+      "event_id": 628,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-20",
+      "basis": "FIM Europe",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "International",
+        "track": "Debreczyn",
+        "competition": "IMEJ",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 8877,
+      "last_record_index": 8892,
+      "record_count": 16,
+      "mapping_keys": [
+        "f5fb15c6741a3c1bc8aa3792d5ea424ab02cbbcb0b30d27e06222ee0d0bcd2ee"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "87097ffd935b7ae6965f48480ba9453cd2cb9646a082b6d894ba21fed26534d5"
+    },
+    {
+      "event_id": 629,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-20",
+      "basis": "FIM Europe",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "International",
+        "track": "Pilzno",
+        "competition": "IMEJ",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 8893,
+      "last_record_index": 8908,
+      "record_count": 16,
+      "mapping_keys": [
+        "74759f37633fc3e105e5d5badb45f72b9cb2493c088c0905ec4655f3a9a7c573"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "3cc9831c8bb5a9986855a84f566c0eb3bd44064361e33ecca707b65e5d0ea392"
+    },
+    {
+      "event_id": 685,
+      "original_status": "VERIFY_CATEGORY",
+      "status": "HIGH",
+      "date": "2026-06-27",
+      "basis": "FIM Europe/SVEMO: European 85/190 Youth final",
+      "review": "kategoria 85/190 oraz podium 15/14/9 zgodne z raportem FIM Europe",
+      "source_url": "https://www.fim-europe.com/european-85-190-youth-speedway-racing-cup-a-new-generation-of-speedway-stars-shines-in-vastervik/",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Miniżużel",
+        "track": "Vastervik",
+        "competition": "IME",
+        "round": "Finał",
+        "capacity": "85-190ccm"
+      },
+      "first_record_index": 9685,
+      "last_record_index": 9700,
+      "record_count": 16,
+      "mapping_keys": [
+        "9d3208f655f5626fb0102214f1b980db7338b0f2855fc4f83540c6706d4ec706"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "7d1c346ea842da19ad736fb14fd26a57ece50fe8f384bd056310a82be38390c0"
+    },
+    {
+      "event_id": 749,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-07-04",
+      "basis": "FIM Europe",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "Dania",
+        "score": "27",
+        "league": "International",
+        "track": "Macon",
+        "competition": "MEP",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 10636,
+      "last_record_index": 10651,
+      "record_count": 16,
+      "mapping_keys": [
+        "5dd154d7b2741953ae2836fb32e55c8adaf7e13d18e3a3336df9228d975301c3",
+        "eaf9a9605ca759852980ad2988cb7122741af6ad399b8b0d2c9fec3338fec5c6",
+        "fff65f1445aa3251d751c50dd0d51d3182b3f672c66ac96dccd8144b439112ba",
+        "f31d71b51cc4c6d109bcc75fcb636ab020e14669ec214f59a948e4371351a58d",
+        "bc779086e654f493a47d250032a6b2d78ccffa779f0c388637bc0809d19cd82a",
+        "9d29155aef85ac991bb93b6f08833f0045d7edb61faa51ac3a7441b2c3890257",
+        "619e0983e6d725331908fe2321a414aa2eae9c561a75a5e5c88e30449871ecfd"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "cf76c2ff52c18c264ec692e58763af7620974e8d4cd4150b556f160aa338136e"
+    },
+    {
+      "event_id": 919,
+      "original_status": "VERIFY_CATEGORY",
+      "status": "HIGH",
+      "date": "2026-08-01",
+      "basis": "FIM Europe: European 250cc Youth Challenge",
+      "review": "European 250cc Youth Challenge; dziesięciu najlepszych zawodników awansowało do finału #929",
+      "source_url": "https://pzm.pl/pliki/zg/zuzel/2026/2026.03.31-kalendarz-2026v10.pdf",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Miniżużel",
+        "track": "Żarnowica",
+        "competition": "IME",
+        "round": "Challenge",
+        "capacity": "250 ccm"
+      },
+      "first_record_index": 13076,
+      "last_record_index": 13091,
+      "record_count": 16,
+      "mapping_keys": [
+        "10cb620591f26dce6c04ece53abab5e60c18cd880d6b679600fddb9f9e3f1fe9"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "4130bea720d8985db069767de5d79e63606dbe6aef7a0839e0c99b673aaa5fca"
+    },
+    {
+      "event_id": 147,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-14",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Opole",
+        "competition": "IMP",
+        "round": "Ćwierćfinał",
+        "capacity": ""
+      },
+      "first_record_index": 1831,
+      "last_record_index": 1848,
+      "record_count": 18,
+      "mapping_keys": [
+        "9d2924eeb97939df6e59e7f361ba140dc4dcbe660fed0eec4b2daf8cd63cb101"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "7b208d5aa59d6d6c8df18c92cee3ff188987b096b68d51c9c80bb785ffaf3147"
+    },
+    {
+      "event_id": 149,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-14",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Gdańsk",
+        "competition": "IMP",
+        "round": "Ćwierćfinał",
+        "capacity": ""
+      },
+      "first_record_index": 1865,
+      "last_record_index": 1882,
+      "record_count": 18,
+      "mapping_keys": [
+        "9f4cbf648fc74c530767d84e43c6e3642e376d74215b5a2a8cfcefba42a62dd5"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "c6dc8b4770eade04a05710f266cc56c3ff04f89372aa50ac6f5d7c52d13a7f63"
+    },
+    {
+      "event_id": 150,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-14",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Gniezno",
+        "competition": "IMP",
+        "round": "Ćwierćfinał",
+        "capacity": ""
+      },
+      "first_record_index": 1883,
+      "last_record_index": 1900,
+      "record_count": 18,
+      "mapping_keys": [
+        "5a37185a397861572ed1219f83c5572155f1b65bb828923499120544c396c113"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "34adaf6cae57111e1dd981196b874221c94332625c9ec934eb87f2f2826dc101"
+    },
+    {
+      "event_id": 231,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-01",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Świętochłowice",
+        "competition": "IMP",
+        "round": "Challenge",
+        "capacity": ""
+      },
+      "first_record_index": 3127,
+      "last_record_index": 3144,
+      "record_count": 18,
+      "mapping_keys": [
+        "66a5f4ee66dfbc5b522c07cfcd81dd3265769a0d77f49c1cac845e37c2e50314"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "f95ecfae979bdfa51c7f73a9eafca54a2abd186ef3c51ae7622832f1fcac3ee7"
+    },
+    {
+      "event_id": 226,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-30",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Bydgoszcz",
+        "competition": "Srebrny Kask",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 3047,
+      "last_record_index": 3064,
+      "record_count": 18,
+      "mapping_keys": [
+        "9bc061ff708b8d622aaf593f24ebfcac4f55e7912f10f3e78c18dc5f9f557977"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "db0a9c60730a2b5acee76b64cd5e3d00f5554688df5c904440c60b8b54e58a90"
+    },
+    {
+      "event_id": 453,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-28",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Grudziądz",
+        "competition": "Brązowy Kask",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 6377,
+      "last_record_index": 6394,
+      "record_count": 18,
+      "mapping_keys": [
+        "9e1bddf3ff33288e45da2af061b2aa57ae849fa457df9ed36df76f0f413d9215"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "3879f19f0785e1226ebc0b46127be0709386839c0fb0af21483387325b08becd"
+    },
+    {
+      "event_id": 73,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-03-28",
+      "basis": "PZM",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Łódź",
+        "competition": "IMME",
+        "round": "",
+        "capacity": ""
+      },
+      "first_record_index": 719,
+      "last_record_index": 735,
+      "record_count": 17,
+      "mapping_keys": [
+        "dfb8acffd779e9782a0f94f4a88bd43563dee0b9945be83704e8ab14706f4d69"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "ac07b43655a73b62c7b7a0d91a587f8f40709cbef5dac16cd8f669c5d2dc4821"
+    },
+    {
+      "event_id": 733,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-07-02",
+      "basis": "PZM: MIMP ćwierćfinały",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Polska",
+        "track": "Świętochłowice",
+        "competition": "MIMP",
+        "round": "Eliminacje",
+        "capacity": ""
+      },
+      "first_record_index": 10405,
+      "last_record_index": 10422,
+      "record_count": 18,
+      "mapping_keys": [
+        "7c4d80b1bf0d54fa22fff3621aa5affeb3a42ccaad84f34a83992a92f1a9000c"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "2148d3974a59f6f354f9bdcbd553af36cf5be16f1d372c3da84509fb3012efb0"
+    },
+    {
+      "event_id": 530,
+      "original_status": "HIGH_WITH_ALIAS",
+      "status": "HIGH",
+      "date": "2026-06-07",
+      "basis": "British Speedway: British U21 Final @ Redcar/ECCO Arena",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {
+        "Middlesbrough": "Redcar / ECCO Arena"
+      },
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Wielka Brytania",
+        "track": "Middlesbrough",
+        "competition": "MIM Wielkiej Brytanii",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 7532,
+      "last_record_index": 7549,
+      "record_count": 18,
+      "mapping_keys": [
+        "be0d24b837e69caca350bdcc508e2f7ab4e68359a95471010ed60f8ce5f05ed4"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "522fc5678ffc5bc2a273fee960749eb687bf6ac5e2dd00478b8f85a6ad23dcba"
+    },
+    {
+      "event_id": 448,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-07-19",
+      "basis": "British Speedway: 21.06 przełożone; zawody rozegrane 19.07",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Wielka Brytania",
+        "track": "Leicester",
+        "competition": "IM Wielkiej Brytanii",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 6303,
+      "last_record_index": 6318,
+      "record_count": 16,
+      "mapping_keys": [
+        "e2dcebf0e1b3f0a0d7d80ffc8c90ffa524c96f6f51f5d0a102e8418e302e319b"
+      ],
+      "roster_count": 16,
+      "roster_sha256": "107031813afbb2b6837ccfcb54ecfb9c18518b22ad233f8cebf81d998340d56f"
+    },
+    {
+      "event_id": 49,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-03-16",
+      "basis": "British Speedway",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Wielka Brytania",
+        "track": "Manchester",
+        "competition": "Memoriał Petera Cravena",
+        "round": "31 edycja",
+        "capacity": ""
+      },
+      "first_record_index": 359,
+      "last_record_index": 376,
+      "record_count": 18,
+      "mapping_keys": [
+        "d446214688ec5fca52eb0cdd4ce8b47a7906abe9a6b364023c4c25bc8bcb0814"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "e7edaa25db0247f5615ead0ec4c55cbd3a3d2f62e66257bc4bb8d9bb92e7cc1d"
+    },
+    {
+      "event_id": 660,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-23",
+      "basis": "SVEMO",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Szwecja",
+        "track": "Karlstad",
+        "competition": "IM Szwecji",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 9363,
+      "last_record_index": 9379,
+      "record_count": 17,
+      "mapping_keys": [
+        "98d3dae245b5742563071090d8fe3477eec02894dd07df40d704418d2ce54964"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "001926182ed982d8b3e8fa04d907f0724a015b2a38ece9e588140f438273e7b9"
+    },
+    {
+      "event_id": 515,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-03",
+      "basis": "SVEMO",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Szwecja",
+        "track": "Hagfors",
+        "competition": "IM Szwecji",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 7311,
+      "last_record_index": 7327,
+      "record_count": 17,
+      "mapping_keys": [
+        "206b6bd486299e0c6f06c154510f2b159336d25fa3420c3cd65ac9fb839bbad4"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "652b6bc9641dd1bd1a471908a82c7f37d0a4bc06c96d588368ab26da1485577e"
+    },
+    {
+      "event_id": 610,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-17",
+      "basis": "DMU / Esbjerg Motorsport",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Dania",
+        "track": "Esbjerg",
+        "competition": "IM Danii",
+        "round": "Finał",
+        "capacity": ""
+      },
+      "first_record_index": 8616,
+      "last_record_index": 8633,
+      "record_count": 18,
+      "mapping_keys": [
+        "f4a29d28ccb375c954e0d0970be37772a7a71e1366f2273918c00c070cd9f597"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "d51231e74379703bf2481b26d89714961faeca8fbed7b28d714cf1299bc42be2"
+    },
+    {
+      "event_id": 451,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-05-27",
+      "basis": "DMU",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Dania",
+        "track": "Glumsoe",
+        "competition": "IM Danii",
+        "round": "Półfinał",
+        "capacity": ""
+      },
+      "first_record_index": 6343,
+      "last_record_index": 6359,
+      "record_count": 17,
+      "mapping_keys": [
+        "33c765439928a70938d4d39054b1c493dd5587b6fbc4d874d462865a7b303574"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "67ecb34418e4ef4855e2fa990d57053e653143f5057dee3e9e43d4adc8a99a65"
+    },
+    {
+      "event_id": 716,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-06-27",
+      "basis": "DMSB",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Niemcy",
+        "track": "Brokstedt",
+        "competition": "IM Niemiec",
+        "round": "2 runda",
+        "capacity": ""
+      },
+      "first_record_index": 10155,
+      "last_record_index": 10172,
+      "record_count": 18,
+      "mapping_keys": [
+        "2a91bd7ff8bafae30e7ec8a76368afaaf94911d174f114d02803588feae9e74f"
+      ],
+      "roster_count": 18,
+      "roster_sha256": "feee6188a95643ec0475f242b84345ebe225d291a1ccd11fc0ab925e6612c40b"
+    },
+    {
+      "event_id": 102,
+      "original_status": "HIGH",
+      "status": "HIGH",
+      "date": "2026-04-04",
+      "basis": "DMSB",
+      "review": "event_id i pełna tożsamość wydarzenia zgodne z WZDB",
+      "source_url": "",
+      "aliases": {},
+      "identity": {
+        "home": "",
+        "away": "",
+        "score": "",
+        "league": "Niemcy",
+        "track": "Guestrow",
+        "competition": "Osterpokal",
+        "round": "",
+        "capacity": ""
+      },
+      "first_record_index": 1177,
+      "last_record_index": 1193,
+      "record_count": 17,
+      "mapping_keys": [
+        "176db0b5b81614d5954dffb8b3508b4e6c7bd4864b429865c9a148c2d3404f1e"
+      ],
+      "roster_count": 17,
+      "roster_sha256": "e05122c84b3073c31ff91280c629cf42aad736b0ee54c6e13bcafc5653f6b835"
+    }
+  ]
+}
