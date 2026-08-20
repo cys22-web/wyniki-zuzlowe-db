@@ -23,7 +23,7 @@ Workflow ma tylko wymagane uprawnienie `contents: write`. Źródłowy `PL2.xlsm`
 - `years` — rekordy wyników pogrupowane według sezonu,
 - `events` — indeks wydarzeń dla każdego sezonu; starszy wpis ma postać `[indeks_pierwszego_rekordu, liczba_rekordów]`, a gdy znana jest rzeczywista data: `[indeks_pierwszego_rekordu, liczba_rekordów, fragmentCount, teams, indeks_daty_w_strings]`.
 
-Opcjonalny piąty element wpisu `events` jest rozszerzeniem zgodnym z WZDB v4. Data ma format ISO `YYYY-MM-DD`, jest internowana raz w globalnej tablicy `strings` i nie jest duplikowana w rekordach zawodników. Brak piątego elementu oznacza nieznaną datę. Rekord wyniku zachowuje dotychczasowe `row[0]..row[13]`; opcjonalny numer startowy z kolumny N jest zapisany na końcu jako `row[14]`.
+Opcjonalny piąty element wpisu `events` jest rozszerzeniem zgodnym z WZDB v4. Data ma format ISO `YYYY-MM-DD`, jest internowana raz w globalnej tablicy `strings` i nie jest duplikowana w rekordach zawodników. Brak piątego elementu oznacza nieznaną datę. Rekord wyniku zachowuje dotychczasowe `row[0]..row[13]`; opcjonalny numer startowy z kolumny A (`Nr`) jest zapisany na końcu jako `row[14]`. Kolumna N (`Sezon`) nie jest zapisywana jako numer startowy.
 
 Zatwierdzone automatycznie daty sezonu 2026 znajdują się w `data/event_dates_2026.json`. Skrypt `scripts/match_event_dates.py` odtwarza tę mapę z dostarczonego kalendarza i zapisuje audyt dopasowań, niejednoznaczności oraz braków w katalogu `reports/`.
 

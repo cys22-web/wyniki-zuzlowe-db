@@ -3,7 +3,8 @@ from pathlib import Path
 
 from openpyxl import Workbook
 
-from scripts.build_wzdb import StringTable, build_database, record_value
+from scripts.build_wzdb import StringTable, build_database, event_component, record_value
+from scripts.event_dates import event_mapping_key
 
 
 class RecordValueTests(unittest.TestCase):
@@ -52,7 +53,7 @@ class UpdateWorkflowTests(unittest.TestCase):
 
 
 class RecordLayoutTests(unittest.TestCase):
-    def test_column_n_is_appended_without_moving_existing_fields(self) -> None:
+    def test_column_a_is_appended_without_moving_existing_fields_or_event_key(self) -> None:
         import tempfile
 
         with tempfile.TemporaryDirectory() as directory:
@@ -66,24 +67,47 @@ class RecordLayoutTests(unittest.TestCase):
                 sheet = workbook.create_sheet(str(year))
                 if year == 2026:
                     values = {
-                        2: "Test Rider", 3: "11+2", 4: "3,3,2*,2,1*",
+                        1: 95, 2: "Test Rider", 3: "11+2", 4: "3,3,2*,2,1*",
+                        5: "Pole E", 6: "Pole F",
                         7: "Home", 8: "Away", 9: "49-41", 10: "Liga",
                         11: "Krosno", 12: "Rozgrywki", 13: "1 runda",
-                        14: "95", 15: "500cc", 16: "Uwagi",
+                        14: 2026, 15: "500cc", 16: "Uwagi",
                     }
                     for column, value in values.items():
                         sheet.cell(4, column, value)
+                    sheet.cell(5, 2, "Rider Without Number")
+                    for column, value in values.items():
+                        if column not in (1, 2):
+                            sheet.cell(5, column, value)
             workbook.save(source)
-            database = build_database(source, "test", "2026-08-20T00:00:00Z")
+
+            event_values = ["Home", "Away", "49-41", "Liga", "Krosno", "Rozgrywki", "1 runda", "500cc"]
+            signature = tuple(event_component(value) for value in event_values)
+            mapping_key = event_mapping_key("2026", signature, 0)
+            database = build_database(
+                source,
+                "test",
+                "2026-08-20T00:00:00Z",
+                {mapping_key: "2026-08-19"},
+            )
 
         record = database["years"]["2026"][0]
         decoded = [None if value is None else database["strings"][value] for value in record[1:]]
         self.assertEqual(len(record), 15)
-        self.assertEqual(decoded[0], "11+2")
-        self.assertEqual(decoded[1], "3,3,2*,2,1*")
-        self.assertEqual(decoded[11], "500cc")
-        self.assertEqual(decoded[12], "Uwagi")
-        self.assertEqual(decoded[13], "95")
+        self.assertEqual(
+            decoded,
+            [
+                "11+2", "3,3,2*,2,1*", "Pole E", "Pole F", "Home", "Away",
+                "49-41", "Liga", "Krosno", "Rozgrywki", "1 runda", "500cc",
+                "Uwagi", "95",
+            ],
+        )
+        self.assertNotIn("2026", decoded)
+        self.assertIsNone(database["years"]["2026"][1][14])
+
+        event_ref = database["events"]["2026"][0]
+        self.assertEqual(event_ref[:2], [0, 2])
+        self.assertEqual(database["strings"][event_ref[4]], "2026-08-19")
 
     def test_missing_date_map_keeps_generation_compatible(self) -> None:
         self.assertEqual(record_value(None, StringTable()), None)

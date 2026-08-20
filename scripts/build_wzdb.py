@@ -224,13 +224,14 @@ def build_database(
             current_event_key: tuple[str, ...] | None = None
             event_occurrences: Counter[tuple[str, ...]] = Counter()
 
-            # B:P is 15 cells. Existing record indices remain unchanged:
+            # A:P is 16 cells. Existing record indices remain unchanged:
             # B is the player lookup, C:M and O:P become row[1]..row[13].
-            # Source column N is appended as the optional start number at row[14].
+            # Source column A is appended as the optional start number at row[14];
+            # source column N is the season and is deliberately omitted.
             for cells in workbook[year_key].iter_rows(
-                min_row=4, min_col=2, max_col=16, values_only=True
+                min_row=4, min_col=1, max_col=16, values_only=True
             ):
-                raw_player_name = cells[0]
+                raw_player_name = cells[1]
                 if raw_player_name is None or not clean_text(raw_player_name):
                     continue
 
@@ -244,13 +245,13 @@ def build_database(
                         [player_name, strings.intern(""), None, normalized]
                     )
 
-                raw_record_values = [*cells[1:12], cells[13], cells[14], cells[12]]
+                raw_record_values = [*cells[2:13], cells[14], cells[15], cells[0]]
                 record = [player_id]
                 record.extend(record_value(value, strings) for value in raw_record_values)
                 records.append(record)
 
-                # Record indices 5..12 (inclusive) correspond to source G:M,O.
-                raw_event_values = (*cells[5:12], cells[13])
+                # Record indices 5..12 (inclusive) still correspond to source G:M,O.
+                raw_event_values = (*cells[6:13], cells[14])
                 event_key = tuple(event_component(value) for value in raw_event_values)
                 record_index = len(records) - 1
                 if event_key == current_event_key:
