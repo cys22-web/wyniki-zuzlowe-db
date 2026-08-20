@@ -3,7 +3,7 @@
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
   "source_sha256": "8a6d7c0f22ffb629308916109e8570aaef425de210b1dfa95344b3d85c0ce232",
   "source_hash": "8a6d7c0f22ff",
-  "generator_sha256": "4346a4d916e3696472879cb2c4cc49e4924676d6714bfd81020cedc4a95959f5",
+  "generator_sha256": "9d94858253e3fc8b3705e883685875ff5054a50d8db548cd83526100c3f58460",
   "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "event_dates_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "dated_event_fragments": 1882,
@@ -22,8 +22,8 @@
     "ambiguous_records": 0,
     "unmatched_records": 433
   },
-  "wzdb_sha256": "fd0d1bef7a93e17674fdf1eaca1d740d8035a136c50b0e452384631bf97cc78c",
-  "built": "2026-08-20T20:07:39Z",
+  "wzdb_sha256": "aecb514523e11fa4095b28f4ddd0bc4ab5fa06a8ca499f4b9bc8a567ecae8eb1",
+  "built": "2026-08-20T21:14:52Z",
   "stats": {
     "rows": 315365,
     "players": 5432,
