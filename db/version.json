@@ -3,9 +3,9 @@
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
   "source_sha256": "8a6d7c0f22ffb629308916109e8570aaef425de210b1dfa95344b3d85c0ce232",
   "source_hash": "8a6d7c0f22ff",
-  "generator_sha256": "4bb9c69686a4f0104620d22aab2c2a4f247f71fba9dcca0aac6dcf8026482c05",
-  "date_map_sha256": "53d5b53cd466278ab11325f734a82ecf748c2249baa3e68eafc299de4f6f036e",
-  "event_dates_sha256": "53d5b53cd466278ab11325f734a82ecf748c2249baa3e68eafc299de4f6f036e",
+  "generator_sha256": "4346a4d916e3696472879cb2c4cc49e4924676d6714bfd81020cedc4a95959f5",
+  "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
+  "event_dates_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "dated_event_fragments": 1882,
   "date_stats": {
     "season": 2026,
@@ -22,8 +22,8 @@
     "ambiguous_records": 0,
     "unmatched_records": 433
   },
-  "wzdb_sha256": "5b69e5efc0e4222ea092f20c62c7e203087c9444e2662ffac74043c445ce03bc",
-  "built": "2026-08-20T19:59:44Z",
+  "wzdb_sha256": "fd0d1bef7a93e17674fdf1eaca1d740d8035a136c50b0e452384631bf97cc78c",
+  "built": "2026-08-20T20:07:39Z",
   "stats": {
     "rows": 315365,
     "players": 5432,
@@ -31,5 +31,6 @@
     "from": 2010,
     "to": 2026,
     "events": 34797
-  }
+  },
+  "source_modified": "Thu, 20 Aug 2026 19:45:21 GMT"
 }
