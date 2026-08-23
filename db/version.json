@@ -1,36 +1,36 @@
 {
   "version": 4,
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
-  "source_sha256": "8a6d7c0f22ffb629308916109e8570aaef425de210b1dfa95344b3d85c0ce232",
-  "source_hash": "8a6d7c0f22ff",
+  "source_sha256": "67cd792485c1c798f11b8438cd841082caf79103185527cb343a48b1718f78bd",
+  "source_hash": "67cd792485c1",
   "generator_sha256": "9d94858253e3fc8b3705e883685875ff5054a50d8db548cd83526100c3f58460",
   "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "event_dates_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "dated_event_fragments": 1882,
   "date_stats": {
     "season": 2026,
-    "logical_events": 1059,
-    "records": 15153,
-    "source_mapping_keys": 1929,
+    "logical_events": 1097,
+    "records": 15674,
+    "source_mapping_keys": 2001,
     "date_map_mapping_keys": 1882,
     "matching_mapping_keys": 1882,
     "stale_mapping_keys": 0,
     "dated_events": 1029,
     "ambiguous_events": 0,
-    "unmatched_events": 30,
+    "unmatched_events": 68,
     "dated_records": 14720,
     "ambiguous_records": 0,
-    "unmatched_records": 433
+    "unmatched_records": 954
   },
-  "wzdb_sha256": "aecb514523e11fa4095b28f4ddd0bc4ab5fa06a8ca499f4b9bc8a567ecae8eb1",
-  "built": "2026-08-20T21:14:52Z",
+  "wzdb_sha256": "9d4069a86ca57320ac81c36f2e0edb7dbc910db844d8d7615ca98da5c7b0e6ac",
+  "built": "2026-08-23T20:54:32Z",
   "stats": {
-    "rows": 315365,
-    "players": 5432,
+    "rows": 315886,
+    "players": 5435,
     "seasons": 17,
     "from": 2010,
     "to": 2026,
-    "events": 34797
+    "events": 34869
   },
-  "source_modified": "Thu, 20 Aug 2026 19:45:21 GMT"
+  "source_modified": "Sun, 23 Aug 2026 19:56:50 GMT"
 }
