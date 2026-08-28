@@ -1,12 +1,13 @@
 {
   "version": 4,
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
-  "source_sha256": "535f7ab92ba0a5b6ad47cfd76c4e2d8f4e4579db4254aeea158acd946a5f5234",
-  "source_hash": "535f7ab92ba0",
-  "generator_sha256": "9d94858253e3fc8b3705e883685875ff5054a50d8db548cd83526100c3f58460",
+  "source_sha256": "ec1710f94bb26f4b86f22166e26f8bbbbb5177a4ffd8ff070ae3533511a5fce7",
+  "source_hash": "ec1710f94bb2",
+  "generator_sha256": "cbae3395263c5820f6d202d9a8964cef8629a2ff86c5f5f97f7173f66b60d79b",
+  "event_date_source": "PL2.xlsm:Q/Data",
   "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "event_dates_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
-  "dated_event_fragments": 1882,
+  "dated_event_fragments": 2066,
   "date_stats": {
     "season": 2026,
     "logical_events": 1142,
@@ -15,15 +16,27 @@
     "date_map_mapping_keys": 1882,
     "matching_mapping_keys": 1882,
     "stale_mapping_keys": 0,
-    "dated_events": 1029,
+    "matching_source_and_json_dates": 1882,
+    "physical_events": 2066,
+    "dated_physical_events": 2066,
+    "undated_physical_events": 0,
+    "dated_events": 1142,
     "ambiguous_events": 0,
-    "unmatched_events": 113,
-    "dated_records": 14720,
+    "ambiguous": 0,
+    "unmatched_events": 0,
+    "events_with_date": 1142,
+    "events_without_date": 0,
+    "dated_records": 16188,
     "ambiguous_records": 0,
-    "unmatched_records": 1468
+    "unmatched_records": 0,
+    "records_with_date": 16188,
+    "records_without_date": 0,
+    "source_conflicts": 0,
+    "json_conflicts": 0,
+    "conflicts": 0
   },
-  "wzdb_sha256": "4eaefc46a9aac22d4bc8743866d89e4ecfeb84f6817196b65dbce8020382edad",
-  "built": "2026-08-28T00:58:25Z",
+  "wzdb_sha256": "25d58ad6967b87314c6375f9fdc60f6e69ea1d26c0d9f09d819e8e699c5347ed",
+  "built": "2026-08-28T20:38:28Z",
   "stats": {
     "rows": 316400,
     "players": 5359,
@@ -32,5 +45,5 @@
     "to": 2026,
     "events": 34934
   },
-  "source_modified": "Thu, 27 Aug 2026 18:27:11 GMT"
+  "source_modified": "Fri, 28 Aug 2026 14:23:00 GMT"
 }
