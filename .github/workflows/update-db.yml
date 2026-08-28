@@ -94,9 +94,7 @@ jobs:
           ]))
           PY
           )"
-          date_map_sha256="$(sha256sum data/event_dates_2026.json | cut -d ' ' -f 1)"
           echo "Google Drive source SHA-256: $source_sha256"
-          echo "Mapa dat SHA-256: $date_map_sha256"
           readarray -t current_hashes < <(python - <<'PY'
           import json
           from pathlib import Path
@@ -106,9 +104,7 @@ jobs:
               version = json.loads(path.read_text(encoding="utf-8"))
               print(version.get("source_sha256", ""))
               print(version.get("generator_sha256", ""))
-              print(version.get("date_map_sha256", version.get("event_dates_sha256", "")))
           else:
-              print()
               print()
               print()
           PY
@@ -116,12 +112,11 @@ jobs:
           echo "sha256=$source_sha256" >> "$GITHUB_OUTPUT"
           if [ "$FORCE_REBUILD" = "true" ] || \
              [ "$source_sha256" != "${current_hashes[0]}" ] || \
-             [ "$generator_sha256" != "${current_hashes[1]}" ] || \
-             [ "$date_map_sha256" != "${current_hashes[2]}" ]; then
+             [ "$generator_sha256" != "${current_hashes[1]}" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Źródło, generator i mapa dat nie zmieniły się; kończę bez przebudowy i commita."
+            echo "Źródło i generator nie zmieniły się; kończę bez przebudowy i commita."
           fi
 
       - name: Zbuduj WZDB v4
@@ -133,7 +128,9 @@ jobs:
           python scripts/build_wzdb.py "$XLSM_PATH" \
             --output db/latest.wzdb \
             --version-file db/version.json \
-            --source-modified "$SOURCE_MODIFIED"
+            --source-modified "$SOURCE_MODIFIED" \
+            --require-complete-event-dates \
+            --expect-date-conflicts 0
 
       - name: Commit i push do main
         if: steps.rebuild.outputs.changed == 'true'

@@ -189,6 +189,8 @@ class EventDateFormatTests(unittest.TestCase):
                 sheet = workbook.create_sheet(str(year))
                 if year == 2026:
                     sheet.cell(4, 2, "Test Rider")
+                    sheet.cell(3, 17, "Data")
+                    sheet.cell(4, 17, "05.04.2026")
                     values = ["Wilki Krosno", "Polonia Bydgoszcz", "49-41", "I Liga", "Krosno", "", "", ""]
                     for column, value in zip((7, 8, 9, 10, 11, 12, 13, 15), values):
                         sheet.cell(4, column, value)

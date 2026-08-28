@@ -9,6 +9,8 @@ import hashlib
 import json
 import math
 import os
+import re
+import sys
 import tempfile
 import unicodedata
 from collections import Counter
@@ -17,6 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from openpyxl import load_workbook
+from openpyxl.utils.datetime import WINDOWS_EPOCH, from_excel
 
 try:
     from scripts.event_dates import (
@@ -88,6 +91,59 @@ def birth_date_value(value: Any) -> Any:
     if isinstance(value, str):
         return clean_text(value) or None
     return value
+
+
+def event_date_value(value: Any, epoch: datetime = WINDOWS_EPOCH) -> str | None:
+    """Normalize a source event date to ISO without inventing missing values."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, bool):
+        raise ValueError(f"wartość logiczna nie jest datą: {value!r}")
+    if isinstance(value, (int, float)):
+        if not math.isfinite(float(value)):
+            raise ValueError(f"nieprawidłowy serial Excela: {value!r}")
+        parsed = from_excel(value, epoch)
+        if isinstance(parsed, datetime):
+            return parsed.date().isoformat()
+        if isinstance(parsed, date):
+            return parsed.isoformat()
+        raise ValueError(f"serial Excela nie wskazuje daty: {value!r}")
+
+    text = clean_text(value)
+    if not text:
+        return None
+    if re.fullmatch(r"\d+(?:\.\d+)?", text):
+        return event_date_value(float(text), epoch)
+    for pattern in ("%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(text, pattern).date().isoformat()
+        except ValueError:
+            pass
+    raise ValueError(f"nieobsługiwany format daty: {text!r}")
+
+
+def resolve_event_date(
+    values: Iterable[Any], epoch: datetime = WINDOWS_EPOCH
+) -> tuple[str | None, list[str], list[str]]:
+    """Resolve one physical event date from all its source-row values."""
+    dates: set[str] = set()
+    invalid: list[str] = []
+    for value in values:
+        try:
+            parsed = event_date_value(value, epoch)
+        except (TypeError, ValueError, OverflowError) as error:
+            invalid.append(f"{value!r}: {error}")
+            continue
+        if parsed:
+            dates.add(parsed)
+    candidates = sorted(dates)
+    if invalid or len(candidates) != 1:
+        return None, candidates, invalid
+    return candidates[0], candidates, invalid
 
 
 def record_value(value: Any, strings: StringTable) -> int | None:
@@ -213,6 +269,8 @@ def build_database(
 
         years: dict[str, list[list[Any]]] = {}
         events: dict[str, list[list[Any]]] = {}
+        source_event_rows: dict[str, list[tuple[int, int]]] = {}
+        event_date_diagnostics: list[dict[str, Any]] = []
         total_rows = 0
         total_events = 0
         approved_event_dates = event_dates or {}
@@ -220,16 +278,83 @@ def build_database(
         for year in range(FIRST_SEASON, LAST_SEASON + 1):
             year_key = str(year)
             records: list[list[Any]] = []
-            year_events: list[list[int]] = []
+            year_events: list[list[Any]] = []
+            year_source_rows: list[tuple[int, int]] = []
             current_event_key: tuple[str, ...] | None = None
+            current_mapping_key: str | None = None
+            current_source_start: int | None = None
+            current_source_end: int | None = None
+            current_date_values: list[Any] = []
             event_occurrences: Counter[tuple[str, ...]] = Counter()
 
-            # A:P is 16 cells. Existing record indices remain unchanged:
+            def finalize_event() -> None:
+                nonlocal current_mapping_key
+                if not year_events or current_mapping_key is None:
+                    return
+                event_index = len(year_events) - 1
+                event_ref = year_events[event_index]
+                source_start = current_source_start or 0
+                source_end = current_source_end or source_start
+                event_date, candidates, invalid = resolve_event_date(
+                    current_date_values, workbook.epoch
+                )
+                if event_date:
+                    # WZDB v4 backward-compatible event extension:
+                    # [start, count, fragmentCount, teams, eventDateStringIndex]
+                    event_ref.extend([1, [], strings.intern(event_date)])
+                if len(candidates) > 1:
+                    event_date_diagnostics.append(
+                        {
+                            "type": "source_conflict",
+                            "season": int(year_key),
+                            "event_index": event_index,
+                            "mapping_key": current_mapping_key,
+                            "start": event_ref[0],
+                            "count": event_ref[1],
+                            "source_rows": [source_start, source_end],
+                            "dates": candidates,
+                        }
+                    )
+                if invalid:
+                    event_date_diagnostics.append(
+                        {
+                            "type": "invalid_source_date",
+                            "season": int(year_key),
+                            "event_index": event_index,
+                            "mapping_key": current_mapping_key,
+                            "start": event_ref[0],
+                            "count": event_ref[1],
+                            "source_rows": [source_start, source_end],
+                            "dates": candidates,
+                            "invalid_values": invalid,
+                        }
+                    )
+                mapped_date = approved_event_dates.get(current_mapping_key)
+                if mapped_date and mapped_date != event_date:
+                    event_date_diagnostics.append(
+                        {
+                            "type": "json_mismatch",
+                            "season": int(year_key),
+                            "event_index": event_index,
+                            "mapping_key": current_mapping_key,
+                            "start": event_ref[0],
+                            "count": event_ref[1],
+                            "source_rows": [source_start, source_end],
+                            "source_date": event_date,
+                            "json_date": mapped_date,
+                        }
+                    )
+                year_source_rows.append((source_start, source_end))
+
+            # A:Q is 17 cells. Existing record indices remain unchanged:
             # B is the player lookup, C:M and O:P become row[1]..row[13].
             # Source column A is appended as the optional start number at row[14];
-            # source column N is the season and is deliberately omitted.
-            for cells in workbook[year_key].iter_rows(
-                min_row=4, min_col=1, max_col=16, values_only=True
+            # N is deliberately omitted, while Q supplies only the event date.
+            for source_row, cells in enumerate(
+                workbook[year_key].iter_rows(
+                    min_row=4, min_col=1, max_col=17, values_only=True
+                ),
+                start=4,
             ):
                 raw_player_name = cells[1]
                 if raw_player_name is None or not clean_text(raw_player_name):
@@ -256,21 +381,26 @@ def build_database(
                 record_index = len(records) - 1
                 if event_key == current_event_key:
                     year_events[-1][1] += 1
+                    current_source_end = source_row
+                    current_date_values.append(cells[16])
                 else:
+                    finalize_event()
                     occurrence = event_occurrences[event_key]
                     event_occurrences[event_key] += 1
-                    mapping_key = event_mapping_key(year_key, event_key, occurrence)
-                    event_date = approved_event_dates.get(mapping_key)
-                    event_ref: list[Any] = [record_index, 1]
-                    if event_date:
-                        # WZDB v4 backward-compatible event extension:
-                        # [start, count, fragmentCount, teams, eventDateStringIndex]
-                        event_ref.extend([1, [], strings.intern(event_date)])
-                    year_events.append(event_ref)
+                    current_mapping_key = event_mapping_key(
+                        year_key, event_key, occurrence
+                    )
+                    year_events.append([record_index, 1])
                     current_event_key = event_key
+                    current_source_start = source_row
+                    current_source_end = source_row
+                    current_date_values = [cells[16]]
+
+            finalize_event()
 
             years[year_key] = records
             events[year_key] = year_events
+            source_event_rows[year_key] = year_source_rows
             total_rows += len(records)
             total_events += len(year_events)
 
@@ -282,7 +412,7 @@ def build_database(
             "to": LAST_SEASON,
             "events": total_events,
         }
-        return {
+        database = {
             "version": FORMAT_VERSION,
             "source": source_url,
             "built": built,
@@ -291,27 +421,97 @@ def build_database(
             "years": years,
             "stats": stats,
             "events": events,
+            "eventDateDiagnostics": event_date_diagnostics,
         }
+        append_logical_event_date_conflicts(database, source_event_rows)
+        return database
     finally:
         workbook.close()
 
 
-def event_date_assignment_stats(
-    database: dict[str, Any],
-    event_dates: dict[str, str],
-    season: str = "2026",
-) -> dict[str, Any]:
-    """Audit exact mapping-key coverage without using mutable event indexes."""
+def decode_event_ref_date(database: dict[str, Any], season: str, index: int) -> str | None:
+    event_ref = database["events"][season][index]
+    if len(event_ref) < 5 or event_ref[4] is None:
+        return None
+    value = event_ref[4]
+    if isinstance(value, str):
+        return value or None
+    return str(database["strings"][value] or "") or None
+
+
+def decode_logical_events(database: dict[str, Any], season: str) -> list[Any]:
     try:
         from scripts.match_event_dates import decode_events
     except ModuleNotFoundError:  # Direct execution: python scripts/build_wzdb.py
         from match_event_dates import decode_events
+    return decode_events(database, season)
 
-    logical_events = decode_events(database, season)
+
+def append_logical_event_date_conflicts(
+    database: dict[str, Any],
+    source_event_rows: dict[str, list[tuple[int, int]]],
+) -> None:
+    """Report date disagreement introduced only when physical fragments merge."""
+    diagnostics = database["eventDateDiagnostics"]
+    for season in database["years"]:
+        for event in decode_logical_events(database, season):
+            dates = sorted(
+                {
+                    value
+                    for item in event.physical
+                    if (
+                        value := decode_event_ref_date(
+                            database, season, item.source_event_index
+                        )
+                    )
+                }
+            )
+            if len(dates) < 2:
+                continue
+            physical_indexes = [item.source_event_index for item in event.physical]
+            ranges = [source_event_rows[season][index] for index in physical_indexes]
+            diagnostics.append(
+                {
+                    "type": "logical_conflict",
+                    "season": int(season),
+                    "event_index": event.logical_event_index,
+                    "physical_event_indexes": physical_indexes,
+                    "mapping_keys": [item.mapping_key for item in event.physical],
+                    "start": event.start,
+                    "count": event.count,
+                    "source_rows": [
+                        min(item[0] for item in ranges),
+                        max(item[1] for item in ranges),
+                    ],
+                    "dates": dates,
+                }
+            )
+
+
+def event_date_assignment_stats(
+    database: dict[str, Any],
+    event_dates: dict[str, str] | None = None,
+    season: str = "2026",
+) -> dict[str, Any]:
+    """Audit PL2 date coverage; the optional JSON mapping is comparison-only."""
+    event_dates = event_dates or {}
+
+    logical_events = decode_logical_events(database, season)
     source_keys = {
         physical.mapping_key
         for event in logical_events
         for physical in event.physical
+    }
+    diagnostics = [
+        item
+        for item in database.get("eventDateDiagnostics", [])
+        if str(item.get("season")) == season
+    ]
+    conflicted_physical = {
+        int(item["event_index"])
+        for item in diagnostics
+        if item.get("type") in {"source_conflict", "invalid_source_date"}
+        and "event_index" in item
     }
     dated_events = 0
     ambiguous_events = 0
@@ -320,17 +520,40 @@ def event_date_assignment_stats(
     ambiguous_records = 0
     unmatched_records = 0
     for event in logical_events:
-        fragment_dates = [event_dates.get(item.mapping_key) for item in event.physical]
+        fragment_dates = [
+            decode_event_ref_date(database, season, item.source_event_index)
+            for item in event.physical
+        ]
         known_dates = {value for value in fragment_dates if value}
-        if len(known_dates) == 1 and all(fragment_dates):
-            dated_events += 1
-            dated_records += event.count
-        elif known_dates:
+        has_source_conflict = any(
+            item.source_event_index in conflicted_physical for item in event.physical
+        )
+        if len(known_dates) > 1 or has_source_conflict:
             ambiguous_events += 1
             ambiguous_records += event.count
+        elif len(known_dates) == 1:
+            dated_events += 1
+            dated_records += event.count
         else:
             unmatched_events += 1
             unmatched_records += event.count
+    physical_dates = [
+        decode_event_ref_date(database, season, index)
+        for index in range(len(database["events"][season]))
+    ]
+    json_matches = 0
+    for event in logical_events:
+        for item in event.physical:
+            source_date = decode_event_ref_date(
+                database, season, item.source_event_index
+            )
+            if source_date and event_dates.get(item.mapping_key) == source_date:
+                json_matches += 1
+    source_conflicts = sum(
+        item.get("type") in {"source_conflict", "invalid_source_date", "logical_conflict"}
+        for item in diagnostics
+    )
+    json_conflicts = sum(item.get("type") == "json_mismatch" for item in diagnostics)
     return {
         "season": int(season),
         "logical_events": len(logical_events),
@@ -339,12 +562,24 @@ def event_date_assignment_stats(
         "date_map_mapping_keys": len(event_dates),
         "matching_mapping_keys": len(source_keys & set(event_dates)),
         "stale_mapping_keys": len(set(event_dates) - source_keys),
+        "matching_source_and_json_dates": json_matches,
+        "physical_events": len(physical_dates),
+        "dated_physical_events": sum(bool(value) for value in physical_dates),
+        "undated_physical_events": sum(not value for value in physical_dates),
         "dated_events": dated_events,
         "ambiguous_events": ambiguous_events,
+        "ambiguous": ambiguous_events,
         "unmatched_events": unmatched_events,
+        "events_with_date": dated_events,
+        "events_without_date": ambiguous_events + unmatched_events,
         "dated_records": dated_records,
         "ambiguous_records": ambiguous_records,
         "unmatched_records": unmatched_records,
+        "records_with_date": dated_records,
+        "records_without_date": ambiguous_records + unmatched_records,
+        "source_conflicts": source_conflicts,
+        "json_conflicts": json_conflicts,
+        "conflicts": source_conflicts + json_conflicts,
     }
 
 
@@ -366,6 +601,26 @@ def validate_expectations(stats: dict[str, int], args: argparse.Namespace) -> No
         raise ValueError("Niezgodne statystyki: " + "; ".join(mismatches))
 
 
+def validate_date_expectations(stats: dict[str, Any], args: argparse.Namespace) -> None:
+    mismatches: list[str] = []
+    if args.expect_date_conflicts is not None and stats["conflicts"] != args.expect_date_conflicts:
+        mismatches.append(
+            f"conflicts: otrzymano {stats['conflicts']}, "
+            f"oczekiwano {args.expect_date_conflicts}"
+        )
+    if args.require_complete_event_dates:
+        if stats["events_without_date"]:
+            mismatches.append(
+                f"wydarzenia bez jednoznacznej daty: {stats['events_without_date']}"
+            )
+        if stats["records_without_date"]:
+            mismatches.append(
+                f"rekordy bez jednoznacznej daty: {stats['records_without_date']}"
+            )
+    if mismatches:
+        raise ValueError("Niezgodna walidacja dat: " + "; ".join(mismatches))
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source_xlsm", type=Path, help="Ścieżka do źródłowego PL2.xlsm")
@@ -376,7 +631,10 @@ def parse_args() -> argparse.Namespace:
         "--event-dates",
         type=Path,
         default=DEFAULT_EVENT_DATES,
-        help="Zatwierdzona mapa kluczy wydarzeń na daty ISO",
+        help=(
+            "Opcjonalna historyczna mapa dat używana wyłącznie do porównania z Q/Data; "
+            "jej brak nie blokuje budowy"
+        ),
     )
     parser.add_argument(
         "--source-modified",
@@ -388,6 +646,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expect-from", type=int)
     parser.add_argument("--expect-to", type=int)
     parser.add_argument("--expect-events", type=int)
+    parser.add_argument("--expect-date-conflicts", type=int)
+    parser.add_argument(
+        "--require-complete-event-dates",
+        action="store_true",
+        help="Przerwij build, jeśli sezon datowania zawiera wydarzenia bez daty",
+    )
     return parser.parse_args()
 
 
@@ -414,6 +678,20 @@ def main() -> int:
     database["dateStats"] = date_stats
     validate_expectations(database["stats"], args)
 
+    for diagnostic in database.get("eventDateDiagnostics", []):
+        rows = diagnostic.get("source_rows", ["?", "?"])
+        print(
+            "KONFLIKT DATY "
+            f"[{diagnostic.get('type')}] sezon={diagnostic.get('season')} "
+            f"event={diagnostic.get('event_index')} "
+            f"wiersze={rows[0]}-{rows[1]} "
+            f"daty={diagnostic.get('dates', [])} "
+            f"PL2={diagnostic.get('source_date')} "
+            f"JSON={diagnostic.get('json_date')}",
+            file=sys.stderr,
+        )
+    validate_date_expectations(date_stats, args)
+
     json_bytes = json.dumps(
         database, ensure_ascii=False, separators=(",", ":")
     ).encode("utf-8")
@@ -427,6 +705,7 @@ def main() -> int:
         "source_sha256": source_sha256,
         "source_hash": source_sha256[:12],
         "generator_sha256": generator_sha256,
+        "event_date_source": "PL2.xlsm:Q/Data",
         "date_map_sha256": (
             sha256_file(event_dates_path) if event_dates_path.is_file() else None
         ),
@@ -434,7 +713,7 @@ def main() -> int:
         "event_dates_sha256": (
             sha256_file(event_dates_path) if event_dates_path.is_file() else None
         ),
-        "dated_event_fragments": date_stats["matching_mapping_keys"],
+        "dated_event_fragments": date_stats["dated_physical_events"],
         "date_stats": date_stats,
         "wzdb_sha256": wzdb_sha256,
         "built": built,

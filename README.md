@@ -7,9 +7,9 @@ Repozytorium przechowuje automatycznie budowaną bazę `db/latest.wzdb` dla apli
 Workflow [`.github/workflows/update-db.yml`](.github/workflows/update-db.yml) uruchamia się co 15 minut oraz ręcznie przez `workflow_dispatch`. GitHub może opóźnić start zadania cyklicznego, dlatego aplikacja nadal korzysta z ostatniej poprawnie opublikowanej bazy do czasu zakończenia synchronizacji.
 
 1. Pobiera `PL2.xlsm` bezpośrednio z `drive.usercontent.google.com`, używając unikalnego parametru żądania i nagłówków `no-cache`; awaryjnie korzysta z `gdown`.
-2. Oblicza SHA-256 źródła oraz wszystkich wejść generatora (kod i zatwierdzona mapa dat) i porównuje je z hashami w `db/version.json`.
-3. Jeśli hashe źródła, generatora i mapy dat są identyczne, kończy pracę bez przebudowy i bez commita.
-4. Jeśli źródło, generator albo mapa dat się zmieniły, uruchamia `scripts/build_wzdb.py`, aktualizuje pliki w `db/`, commituje je i pushuje do `main`. Ręczne uruchomienie pozwala też zaznaczyć `force_rebuild`.
+2. Oblicza SHA-256 źródła oraz kodu generatora i porównuje je z hashami w `db/version.json`.
+3. Jeśli hashe źródła i generatora są identyczne, kończy pracę bez przebudowy i bez commita.
+4. Jeśli źródło albo generator się zmieniły, uruchamia `scripts/build_wzdb.py`, waliduje kompletność dat sezonu 2026, aktualizuje pliki w `db/`, commituje je i pushuje do `main`. Ręczne uruchomienie pozwala też zaznaczyć `force_rebuild`.
 
 Workflow ma tylko wymagane uprawnienie `contents: write`. Źródłowy `PL2.xlsm` jest plikiem tymczasowym, znajduje się w `.gitignore` i nie jest zapisywany w repozytorium.
 
@@ -23,11 +23,11 @@ Workflow ma tylko wymagane uprawnienie `contents: write`. Źródłowy `PL2.xlsm`
 - `years` — rekordy wyników pogrupowane według sezonu,
 - `events` — indeks wydarzeń dla każdego sezonu; starszy wpis ma postać `[indeks_pierwszego_rekordu, liczba_rekordów]`, a gdy znana jest rzeczywista data: `[indeks_pierwszego_rekordu, liczba_rekordów, fragmentCount, teams, indeks_daty_w_strings]`.
 
-Opcjonalny piąty element wpisu `events` jest rozszerzeniem zgodnym z WZDB v4. Data ma format ISO `YYYY-MM-DD`, jest internowana raz w globalnej tablicy `strings` i nie jest duplikowana w rekordach zawodników. Brak piątego elementu oznacza nieznaną datę. Rekord wyniku zachowuje dotychczasowe `row[0]..row[13]`; opcjonalny numer startowy z kolumny A (`Nr`) jest zapisany na końcu jako `row[14]`. Kolumna N (`Sezon`) nie jest zapisywana jako numer startowy.
+Opcjonalny piąty element wpisu `events` jest rozszerzeniem zgodnym z WZDB v4. Data pochodzi z kolumny Q (`Data`) pliku PL2, ma format ISO `YYYY-MM-DD`, jest internowana raz w globalnej tablicy `strings` i nie jest duplikowana w rekordach zawodników. Brak piątego elementu oznacza nieznaną albo sprzeczną datę. Rekord wyniku zachowuje dotychczasowe `row[0]..row[13]`; opcjonalny numer startowy z kolumny A (`Nr`) jest zapisany na końcu jako `row[14]`. Kolumny N (`Sezon`) i Q (`Data`) nie są dodawane do rekordu zawodnika.
 
-Zatwierdzone automatycznie daty sezonu 2026 znajdują się w `data/event_dates_2026.json`. Skrypt `scripts/match_event_dates.py` odtwarza tę mapę z dostarczonego kalendarza i zapisuje audyt dopasowań, niejednoznaczności oraz braków w katalogu `reports/`.
+`PL2.xlsm` jest jedynym głównym źródłem wyników i dat. Generator zbiera wszystkie niepuste wartości Q w obrębie fizycznego wydarzenia; jedną zgodną datę zachowuje, a przy dwóch różnych datach pozostawia `eventDate=null` i zapisuje diagnostykę z zakresem wierszy. Historyczny `data/event_dates_2026.json` pozostaje opcjonalnym narzędziem porównawczym: różnica jest raportowana, lecz JSON nigdy nie nadpisuje daty z PL2. Usunięcie mapy nie blokuje budowy.
 
-`db/version.json` zawiera hash źródła, jego skróconą wersję, hash wejść generatora, hash zatwierdzonej mapy dat, hash wynikowego WZDB, czas budowy, dostępny nagłówek `Last-Modified` z Google Drive i statystyki kontrolne. SHA-256 zawartości pozostaje głównym identyfikatorem wersji; data modyfikacji służy diagnostyce.
+`db/version.json` zawiera hash źródła, jego skróconą wersję, hash wejść generatora, opcjonalny diagnostyczny hash historycznej mapy dat, hash wynikowego WZDB, czas budowy, dostępny nagłówek `Last-Modified` z Google Drive i statystyki kontrolne. SHA-256 zawartości pozostaje głównym identyfikatorem wersji; data modyfikacji służy diagnostyce.
 
 ## Budowa lokalna
 
@@ -49,5 +49,7 @@ python scripts/build_wzdb.py /ścieżka/do/PL2.xlsm \
   --expect-from 2010 \
   --expect-to 2026
 ```
+
+Pipeline produkcyjny dodatkowo używa `--require-complete-event-dates --expect-date-conflicts 0`. Opcjonalne `--event-dates` służy wyłącznie porównaniu z historyczną mapą; może wskazywać nieistniejący plik.
 
 Konwerter zapisuje pliki atomowo i nie modyfikuje źródłowego skoroszytu.
