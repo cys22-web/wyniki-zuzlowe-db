@@ -345,41 +345,46 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
         ):
             end += 1
         run = physical[index:end]
-        teams: list[dict[str, str]] = []
-        seen: set[str] = set()
-        for item in run:
-            home, away, score = (
-                item.values["home"],
-                item.values["away"],
-                item.values["score"],
-            )
-            if score and bool(home) != bool(away):
-                name = home or away
-                key = normalize(name)
-                if key and key not in seen:
-                    seen.add(key)
-                    teams.append({"name": name, "score": score})
         grouped: list[tuple[list[PhysicalEvent], list[dict[str, str]]]] = []
-        if strong and len(run) > 1 and len(teams) > 1:
-            # Preserve the established multi-team merge, including legacy
-            # seasons that do not have event dates yet.
-            grouped.append((run, teams))
-        else:
-            # G:I is overloaded in PL2: in team matches it stores
-            # home/away/score, while individual meetings may use it for
-            # rider-specific final or semi-final placing. Keep G:M+O in the
-            # physical mapping key, but merge adjacent individual fragments
-            # only when their complete dated identity is unambiguous.
-            group_index = 0
-            while group_index < len(run):
-                capacity = normalize(run[group_index].values["capacity"])
-                group_end = group_index + 1
-                while (
-                    group_end < len(run)
-                    and normalize(run[group_end].values["capacity"]) == capacity
-                ):
-                    group_end += 1
-                capacity_group = run[group_index:group_end]
+        group_index = 0
+        while group_index < len(run):
+            # Capacity is an exact, hard boundary for every merge path. A
+            # blank value is compatible only with another blank value.
+            capacity = str(run[group_index].values["capacity"] or "").strip()
+            group_end = group_index + 1
+            while (
+                group_end < len(run)
+                and str(run[group_end].values["capacity"] or "").strip()
+                == capacity
+            ):
+                group_end += 1
+            capacity_group = run[group_index:group_end]
+
+            teams: list[dict[str, str]] = []
+            seen: set[str] = set()
+            for item in capacity_group:
+                home, away, score = (
+                    item.values["home"],
+                    item.values["away"],
+                    item.values["score"],
+                )
+                if score and bool(home) != bool(away):
+                    name = home or away
+                    key = normalize(name)
+                    if key and key not in seen:
+                        seen.add(key)
+                        teams.append({"name": name, "score": score})
+
+            if strong and len(capacity_group) > 1 and len(teams) > 1:
+                # Preserve the established multi-team merge, including
+                # legacy seasons without dates, inside one capacity only.
+                grouped.append((capacity_group, teams))
+            else:
+                # G:I is overloaded in PL2: in team matches it stores
+                # home/away/score, while individual meetings may use it for
+                # rider-specific final or semi-final placing. Keep G:M+O in
+                # the physical mapping key, but merge adjacent individual
+                # fragments only when their dated identity is unambiguous.
                 event_date = capacity_group[0].event_date
                 same_date = bool(event_date) and all(
                     item.event_date == event_date for item in capacity_group
@@ -398,7 +403,7 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
                     grouped.append((capacity_group, []))
                 else:
                     grouped.extend(([item], []) for item in capacity_group)
-                group_index = group_end
+            group_index = group_end
 
         for group, group_teams in grouped:
             logical.append(

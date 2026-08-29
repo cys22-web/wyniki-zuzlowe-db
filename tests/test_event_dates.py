@@ -64,6 +64,35 @@ def candidate(date="2026-08-01", venue="Łódź", event="FIM SGP of Poland - Lod
 
 
 class LogicalEventDecodingTests(unittest.TestCase):
+    def decode_two_team_fragments(self, capacities):
+        strings = [""]
+
+        def intern(value):
+            value = str(value or "")
+            if value not in strings:
+                strings.append(value)
+            return strings.index(value)
+
+        rows = []
+        for team, score, capacity in zip(
+            ("Team A", "Team B"), ("30", "20"), capacities
+        ):
+            rows.append([
+                0, 0, 0, 0, 0,
+                intern(team), 0, intern(score), intern("Test league"),
+                intern("Test track"), intern("Team competition"),
+                intern("1 runda"), intern(capacity),
+            ])
+        date_id = intern("2026-05-01")
+        return decode_events({
+            "strings": strings,
+            "years": {"2026": rows},
+            "events": {"2026": [
+                [0, 1, 1, [], date_id],
+                [1, 1, 1, [], date_id],
+            ]},
+        }, "2026")
+
     def test_albury_rounds_keep_mapping_fragments_but_decode_to_two_events(self):
         strings = [""]
         string_ids = {"": 0}
@@ -131,6 +160,28 @@ class LogicalEventDecodingTests(unittest.TestCase):
         }
 
         logical = decode_events(database, "2026")
+
+        self.assertEqual(len(logical), 2)
+
+    def test_multi_team_fragments_with_different_capacity_stay_separate(self):
+        logical = self.decode_two_team_fragments(("125 ccm", "250 ccm"))
+
+        self.assertEqual(len(logical), 2)
+
+    def test_multi_team_fragments_with_identical_capacity_merge(self):
+        logical = self.decode_two_team_fragments(("500R", "500R"))
+
+        self.assertEqual(len(logical), 1)
+        self.assertEqual(len(logical[0].teams), 2)
+
+    def test_multi_team_fragments_with_both_capacities_blank_merge(self):
+        logical = self.decode_two_team_fragments(("", ""))
+
+        self.assertEqual(len(logical), 1)
+        self.assertEqual(len(logical[0].teams), 2)
+
+    def test_multi_team_fragments_with_blank_and_nonblank_capacity_stay_separate(self):
+        logical = self.decode_two_team_fragments(("", "500R"))
 
         self.assertEqual(len(logical), 2)
 
