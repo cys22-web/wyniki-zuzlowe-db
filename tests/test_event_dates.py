@@ -12,6 +12,7 @@ from scripts.match_event_dates import (
     LogicalEvent,
     PhysicalEvent,
     apply_reviewed_supplement,
+    decode_events,
     match_events,
     venue_key,
 )
@@ -60,6 +61,78 @@ def candidate(date="2026-08-01", venue="Łódź", event="FIM SGP of Poland - Lod
     }
     result.update(overrides)
     return result
+
+
+class LogicalEventDecodingTests(unittest.TestCase):
+    def test_albury_rounds_keep_mapping_fragments_but_decode_to_two_events(self):
+        strings = [""]
+        string_ids = {"": 0}
+
+        def intern(value):
+            value = str(value or "")
+            if value not in string_ids:
+                string_ids[value] = len(strings)
+                strings.append(value)
+            return string_ids[value]
+
+        def record(round_name, home="", away="", score="", capacity=""):
+            return [
+                0, 0, 0, 0, 0,
+                intern(home), intern(away), intern(score), intern("Australia"),
+                intern("Albury-Wodonga"), intern("IM Australii"),
+                intern(round_name), intern(capacity),
+            ]
+
+        rows = [record("1 runda") for _ in range(17)]
+        rows.extend([
+            record("2 runda"),
+            record("2 runda", "2", "miejsce w finale"),
+            record("2 runda", "3", "miejsce w finale"),
+            *[record("2 runda") for _ in range(14)],
+        ])
+        first_date = intern("2026-01-03")
+        second_date = intern("2026-01-04")
+        database = {
+            "strings": strings,
+            "years": {"2026": rows},
+            "events": {"2026": [
+                [0, 17, 1, [], first_date],
+                [17, 1, 1, [], second_date],
+                [18, 1, 1, [], second_date],
+                [19, 1, 1, [], second_date],
+                [20, 14, 1, [], second_date],
+            ]},
+        }
+
+        logical = decode_events(database, "2026")
+
+        self.assertEqual(len(database["events"]["2026"]), 5)
+        self.assertEqual(len(logical), 2)
+        self.assertEqual(
+            [(event.start, event.count, event.values["round"]) for event in logical],
+            [(0, 17, "1 runda"), (17, 17, "2 runda")],
+        )
+        self.assertEqual(
+            [[fragment.event_date for fragment in event.physical] for event in logical],
+            [["2026-01-03"], ["2026-01-04"] * 4],
+        )
+
+    def test_dated_individual_categories_with_different_capacity_stay_separate(self):
+        database = {
+            "strings": ["", "Miniżużel", "Glasgow", "British Youth Championship", "1 runda", "125 ccm", "250 ccm", "2026-04-12"],
+            "years": {"2026": [
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6],
+            ]},
+            "events": {"2026": [
+                [0, 1, 1, [], 7],
+                [1, 1, 1, [], 7],
+            ]},
+        }
+
+        logical = decode_events(database, "2026")
+
+        self.assertEqual(len(logical), 2)
 
 
 class ConservativeMatchingTests(unittest.TestCase):

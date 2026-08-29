@@ -268,6 +268,7 @@ class PhysicalEvent:
     count: int
     values: dict[str, str]
     mapping_key: str
+    event_date: str = ""
 
 
 @dataclass
@@ -305,6 +306,12 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
         signature = tuple(values[field] for field in EVENT_FIELDS)
         ordinal = occurrence[signature]
         occurrence[signature] += 1
+        raw_event_date = event_ref[4] if len(event_ref) > 4 else None
+        event_date = (
+            raw_event_date
+            if isinstance(raw_event_date, str)
+            else value(raw_event_date)
+        )
         physical.append(
             PhysicalEvent(
                 source_event_index=source_event_index,
@@ -312,6 +319,7 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
                 count=count,
                 values=values,
                 mapping_key=event_mapping_key(season, signature, ordinal),
+                event_date=event_date,
             )
         )
 
@@ -351,15 +359,54 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
                 if key and key not in seen:
                     seen.add(key)
                     teams.append({"name": name, "score": score})
-        merge = strong and len(run) > 1 and len(teams) > 1
-        groups = [run] if merge else [[item] for item in run]
-        for group in groups:
+        grouped: list[tuple[list[PhysicalEvent], list[dict[str, str]]]] = []
+        if strong and len(run) > 1 and len(teams) > 1:
+            # Preserve the established multi-team merge, including legacy
+            # seasons that do not have event dates yet.
+            grouped.append((run, teams))
+        else:
+            # G:I is overloaded in PL2: in team matches it stores
+            # home/away/score, while individual meetings may use it for
+            # rider-specific final or semi-final placing. Keep G:M+O in the
+            # physical mapping key, but merge adjacent individual fragments
+            # only when their complete dated identity is unambiguous.
+            group_index = 0
+            while group_index < len(run):
+                capacity = normalize(run[group_index].values["capacity"])
+                group_end = group_index + 1
+                while (
+                    group_end < len(run)
+                    and normalize(run[group_end].values["capacity"]) == capacity
+                ):
+                    group_end += 1
+                capacity_group = run[group_index:group_end]
+                event_date = capacity_group[0].event_date
+                same_date = bool(event_date) and all(
+                    item.event_date == event_date for item in capacity_group
+                )
+                team_shaped = any(
+                    item.values["score"]
+                    and (item.values["home"] or item.values["away"])
+                    for item in capacity_group
+                )
+                if (
+                    strong
+                    and len(capacity_group) > 1
+                    and same_date
+                    and not team_shaped
+                ):
+                    grouped.append((capacity_group, []))
+                else:
+                    grouped.extend(([item], []) for item in capacity_group)
+                group_index = group_end
+
+        for group, group_teams in grouped:
             logical.append(
                 LogicalEvent(
                     logical_event_index=len(logical),
                     physical=group,
                     values=group[0].values,
-                    teams=teams if merge else [],
+                    teams=group_teams,
                 )
             )
         index = end
