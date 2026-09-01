@@ -269,6 +269,8 @@ class PhysicalEvent:
     values: dict[str, str]
     mapping_key: str
     event_date: str = ""
+    fragment_count: int = 1
+    teams: list[dict[str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -289,6 +291,149 @@ class LogicalEvent:
     @property
     def source_event_index(self) -> int:
         return self.physical[0].source_event_index
+
+    @property
+    def fragment_count(self) -> int:
+        return sum(item.fragment_count for item in self.physical)
+
+
+# Behavioral port of app-core.js logicalEventSignature(), teamStructureEvidence(),
+# legacyStandingTeams(), and mergeAdjacentEvents(). Keep this block in parity
+# with the PWA and verify every generated WZDB against the runtime merger.
+LOGICAL_EVENT_FIELDS = ("season", "league", "track", "competition", "round")
+TEAM_LABEL_PATTERN = re.compile(r"[a-z\u00c0-\u024f\u1e00-\u1eff]", re.IGNORECASE)
+STANDING_SCORE_PATTERN = re.compile(
+    r"^\d+(?:[.,]\d+)?(?:\s*\+\s*\d+(?:[.,]\d+)?)?$"
+)
+CANONICAL_DASH_PATTERN = re.compile(r"[-‐‑‒–—−]+")
+
+
+def pwa_normalize(value: Any) -> str:
+    """Match app-core.js normalize() for logical-event classification."""
+    text = str(value or "")
+    text = "".join(
+        char
+        for char in unicodedata.normalize("NFD", text)
+        if not 0x0300 <= ord(char) <= 0x036F
+    )
+    return " ".join(text.lower().replace("ł", "l").strip().split())
+
+
+def canonical_entity_key(value: Any) -> str:
+    """Match app-core.js canonicalEntityKey()."""
+    text = CANONICAL_DASH_PATTERN.sub(" ", pwa_normalize(value))
+    text = re.sub(r"[.'’`]", "", text)
+    return " ".join(text.strip().split())
+
+
+def logical_event_signature(season: str, event: PhysicalEvent) -> tuple[str, ...]:
+    values = {
+        "season": season,
+        **event.values,
+    }
+    return tuple(
+        canonical_entity_key(values[field])
+        if field == "track"
+        else pwa_normalize(values[field])
+        for field in LOGICAL_EVENT_FIELDS
+    )
+
+
+def has_team_label(value: Any) -> bool:
+    return bool(TEAM_LABEL_PATTERN.search(str(value or "").strip()))
+
+
+def has_standing_score(value: Any) -> bool:
+    return bool(STANDING_SCORE_PATTERN.fullmatch(str(value or "").strip()))
+
+
+def has_classic_team_structure(event: PhysicalEvent) -> bool:
+    home = str(event.values["home"] or "").strip()
+    away = str(event.values["away"] or "").strip()
+    score = str(event.values["score"] or "").strip()
+    return bool(
+        score
+        and home
+        and away
+        and has_team_label(home)
+        and has_team_label(away)
+    )
+
+
+def standing_team(event: PhysicalEvent) -> dict[str, str] | None:
+    home = str(event.values["home"] or "").strip()
+    away = str(event.values["away"] or "").strip()
+    score = str(event.values["score"] or "").strip()
+    name = home or away
+    supported_by_rows = event.count >= 2
+    if (
+        not score
+        or bool(home) == bool(away)
+        or (not supported_by_rows and not has_team_label(name))
+        or (not supported_by_rows and not has_standing_score(score))
+    ):
+        return None
+    return {"name": name, "score": score}
+
+
+def team_structure_evidence(
+    events: list[PhysicalEvent],
+) -> tuple[bool, bool, list[dict[str, str]]]:
+    classic_team = any(has_classic_team_structure(event) for event in events)
+    teams: list[dict[str, str]] = []
+    seen_teams: set[str] = set()
+    for event in events:
+        candidates = [standing_team(event)]
+        for team in event.teams:
+            name = str(team.get("name") or "").strip()
+            score = str(team.get("score") or "").strip()
+            if name and score and (
+                event.count >= 2
+                or (has_team_label(name) and has_standing_score(score))
+            ):
+                candidates.append({"name": name, "score": score})
+        for team in (candidate for candidate in candidates if candidate):
+            key = pwa_normalize(team["name"])
+            if not key or key in seen_teams:
+                continue
+            seen_teams.add(key)
+            teams.append(
+                {"name": str(team["name"]), "score": str(team.get("score") or "")}
+            )
+    multi_team = not classic_team and len(teams) > 1
+    return classic_team, multi_team, teams
+
+
+def legacy_standing_teams(events: list[PhysicalEvent]) -> list[dict[str, str]]:
+    teams: list[dict[str, str]] = []
+    seen_teams: set[str] = set()
+    for event in events:
+        home = str(event.values["home"] or "").strip()
+        away = str(event.values["away"] or "").strip()
+        score = str(event.values["score"] or "").strip()
+        if event.teams:
+            candidates = [
+                team
+                for team in event.teams
+                if str(team.get("name") or "").strip()
+                and (str(team.get("score") or "").strip() or event.count >= 2)
+            ]
+        elif score and bool(home) != bool(away):
+            candidates = [{"name": home or away, "score": score}]
+        else:
+            candidates = []
+        for team in candidates:
+            key = pwa_normalize(team.get("name"))
+            if not key or key in seen_teams:
+                continue
+            seen_teams.add(key)
+            teams.append(
+                {
+                    "name": str(team.get("name") or ""),
+                    "score": str(team.get("score") or ""),
+                }
+            )
+    return teams
 
 
 def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
@@ -312,6 +457,17 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
             if isinstance(raw_event_date, str)
             else value(raw_event_date)
         )
+        raw_fragment_count = event_ref[2] if len(event_ref) > 2 else 1
+        fragment_count = int(raw_fragment_count or 1)
+        raw_teams = event_ref[3] if len(event_ref) > 3 else []
+        teams = [
+            {
+                "name": str(team.get("name") or ""),
+                "score": str(team.get("score") or ""),
+            }
+            for team in raw_teams
+            if isinstance(team, dict)
+        ]
         physical.append(
             PhysicalEvent(
                 source_event_index=source_event_index,
@@ -320,6 +476,8 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
                 values=values,
                 mapping_key=event_mapping_key(season, signature, ordinal),
                 event_date=event_date,
+                fragment_count=fragment_count,
+                teams=teams,
             )
         )
 
@@ -327,20 +485,17 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
     index = 0
     while index < len(physical):
         first = physical[index]
-        signature = tuple(
-            normalize(first.values[field])
-            for field in ("league", "track", "competition", "round")
+        signature = logical_event_signature(season, first)
+        strong = bool(
+            str(season or "").strip()
+            and str(first.values["track"] or "").strip()
+            and str(first.values["competition"] or "").strip()
         )
-        strong = bool(season and first.values["track"] and first.values["competition"])
         end = index + 1
         while (
             strong
             and end < len(physical)
-            and tuple(
-                normalize(physical[end].values[field])
-                for field in ("league", "track", "competition", "round")
-            )
-            == signature
+            and logical_event_signature(season, physical[end]) == signature
             and physical[end - 1].start + physical[end - 1].count == physical[end].start
         ):
             end += 1
@@ -360,49 +515,42 @@ def decode_events(database: dict[str, Any], season: str) -> list[LogicalEvent]:
                 group_end += 1
             capacity_group = run[group_index:group_end]
 
-            teams: list[dict[str, str]] = []
-            seen: set[str] = set()
-            for item in capacity_group:
-                home, away, score = (
-                    item.values["home"],
-                    item.values["away"],
-                    item.values["score"],
-                )
-                if score and bool(home) != bool(away):
-                    name = home or away
-                    key = normalize(name)
-                    if key and key not in seen:
-                        seen.add(key)
-                        teams.append({"name": name, "score": score})
+            event_date = str(capacity_group[0].event_date or "").strip()
+            same_date = bool(event_date) and all(
+                str(item.event_date or "").strip() == event_date
+                for item in capacity_group
+            )
+            event_date_candidates = {
+                str(item.event_date or "").strip()
+                for item in capacity_group
+                if str(item.event_date or "").strip()
+            }
+            date_conflict = len(event_date_candidates) > 1
+            classic_team, multi_team, teams = team_structure_evidence(capacity_group)
+            legacy_teams = (
+                []
+                if event_date_candidates
+                else legacy_standing_teams(capacity_group)
+            )
 
-            if strong and len(capacity_group) > 1 and len(teams) > 1:
-                # Preserve the established multi-team merge, including
-                # legacy seasons without dates, inside one capacity only.
+            if (
+                not strong
+                or len(capacity_group) < 2
+                or date_conflict
+                or classic_team
+            ):
+                grouped.extend(([item], item.teams) for item in capacity_group)
+            elif len(legacy_teams) > 1:
+                # Historical seasons have no mapped dates; retain their
+                # established multi-team grouping instead of reinterpreting
+                # ambiguous G:I data.
+                grouped.append((capacity_group, legacy_teams))
+            elif multi_team:
                 grouped.append((capacity_group, teams))
+            elif same_date:
+                grouped.append((capacity_group, []))
             else:
-                # G:I is overloaded in PL2: in team matches it stores
-                # home/away/score, while individual meetings may use it for
-                # rider-specific final or semi-final placing. Keep G:M+O in
-                # the physical mapping key, but merge adjacent individual
-                # fragments only when their dated identity is unambiguous.
-                event_date = capacity_group[0].event_date
-                same_date = bool(event_date) and all(
-                    item.event_date == event_date for item in capacity_group
-                )
-                team_shaped = any(
-                    item.values["score"]
-                    and (item.values["home"] or item.values["away"])
-                    for item in capacity_group
-                )
-                if (
-                    strong
-                    and len(capacity_group) > 1
-                    and same_date
-                    and not team_shaped
-                ):
-                    grouped.append((capacity_group, []))
-                else:
-                    grouped.extend(([item], []) for item in capacity_group)
+                grouped.extend(([item], item.teams) for item in capacity_group)
             group_index = group_end
 
         for group, group_teams in grouped:

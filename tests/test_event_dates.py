@@ -64,6 +64,38 @@ def candidate(date="2026-08-01", venue="Łódź", event="FIM SGP of Poland - Lod
 
 
 class LogicalEventDecodingTests(unittest.TestCase):
+    def decode_fragments(self, fragments, counts=None, dates=None, event_teams=None):
+        strings = [""]
+
+        def intern(value):
+            value = str(value or "")
+            if value not in strings:
+                strings.append(value)
+            return strings.index(value)
+
+        counts = counts or [1] * len(fragments)
+        dates = dates or ["2026-08-30"] * len(fragments)
+        event_teams = event_teams or [[] for _ in fragments]
+        rows = []
+        events = []
+        start = 0
+        for fragment, count, event_date, teams in zip(
+            fragments, counts, dates, event_teams
+        ):
+            row = [0, 0, 0, 0, 0]
+            row.extend(intern(fragment.get(field, "")) for field in EVENT_FIELDS)
+            rows.extend([row] * count)
+            events.append([start, count, 1, teams, intern(event_date)])
+            start += count
+        return decode_events(
+            {
+                "strings": strings,
+                "years": {"2026": rows},
+                "events": {"2026": events},
+            },
+            "2026",
+        )
+
     def decode_two_team_fragments(self, capacities):
         strings = [""]
 
@@ -182,6 +214,98 @@ class LogicalEventDecodingTests(unittest.TestCase):
 
     def test_multi_team_fragments_with_blank_and_nonblank_capacity_stay_separate(self):
         logical = self.decode_two_team_fragments(("", "500R"))
+
+        self.assertEqual(len(logical), 2)
+
+    def test_zarnovica_rider_specific_g_i_merges_to_one_logical_event(self):
+        base = {
+            "league": "Słowacja",
+            "track": "Żarnowica",
+            "competition": "Zlata Prilba",
+            "round": "",
+            "capacity": "",
+        }
+        fragments = [
+            {**base, "home": str(place), "away": "", "score": "miejsce w finale"}
+            for place in range(1, 10)
+        ]
+        fragments.append({**base, "home": "", "away": "", "score": ""})
+
+        logical = self.decode_fragments(fragments, counts=[1] * 9 + [11])
+
+        self.assertEqual(len(logical), 1)
+        self.assertEqual(logical[0].count, 20)
+        self.assertEqual(len(logical[0].physical), 10)
+        self.assertEqual(logical[0].fragment_count, 10)
+        self.assertEqual(logical[0].teams, [])
+
+    def test_event_teams_alone_do_not_make_rider_fragments_team_shaped(self):
+        base = {
+            "league": "Słowacja",
+            "track": "Żarnowica",
+            "competition": "Zlata Prilba",
+            "round": "",
+            "capacity": "",
+        }
+        logical = self.decode_fragments(
+            [
+                {**base, "home": "1", "score": "miejsce w finale"},
+                {**base, "home": "2", "score": "miejsce w finale"},
+            ],
+            event_teams=[
+                [{"name": "1", "score": "miejsce w finale"}],
+                [{"name": "2", "score": "miejsce w finale"}],
+            ],
+        )
+
+        self.assertEqual(len(logical), 1)
+        self.assertEqual(logical[0].teams, [])
+
+    def test_classic_team_match_is_never_absorbed_by_adjacent_identity(self):
+        base = {
+            "league": "Test league",
+            "track": "Test track",
+            "competition": "Team competition",
+            "round": "1 runda",
+            "capacity": "",
+        }
+        logical = self.decode_fragments(
+            [
+                {**base, "home": "Team A", "away": "Team B", "score": "49-41"},
+                {**base, "home": "", "away": "", "score": ""},
+            ],
+            counts=[10, 2],
+        )
+
+        self.assertEqual(len(logical), 2)
+
+    def test_canonical_track_punctuation_matches_pwa_signature(self):
+        base = {
+            "league": "International",
+            "competition": "Test Cup",
+            "round": "1 runda",
+            "capacity": "",
+        }
+        logical = self.decode_fragments(
+            [
+                {**base, "track": "King’s-Lynn"},
+                {**base, "track": "Kings Lynn"},
+            ]
+        )
+
+        self.assertEqual(len(logical), 1)
+
+    def test_same_identity_with_different_dates_never_merges(self):
+        base = {
+            "league": "International",
+            "track": "Test track",
+            "competition": "Test Cup",
+            "round": "1 runda",
+            "capacity": "",
+        }
+        logical = self.decode_fragments(
+            [base, base], dates=["2026-08-30", "2026-08-31"]
+        )
 
         self.assertEqual(len(logical), 2)
 
