@@ -1,8 +1,8 @@
 {
   "version": 4,
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
-  "source_sha256": "12dc081bfdf8f455d928b9742503d4bfcb5ab0b04908b7a672d7c739c5df8be4",
-  "source_hash": "12dc081bfdf8",
+  "source_sha256": "13ec1430b3ddbd700ca4510f9f79c06ec41d7345f3074f5adbd4c9e49074fbef",
+  "source_hash": "13ec1430b3dd",
   "generator_sha256": "4217be3d5cefa1899f1f50114bbf99118610f1ca2506a4a3d199faead1d59c5f",
   "event_date_source": "PL2.xlsm:Q/Data",
   "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
@@ -35,15 +35,15 @@
     "json_conflicts": 0,
     "conflicts": 0
   },
-  "wzdb_sha256": "a4a6634c69dbf838d37a75d51ac2aacd906fb97780e0b48d9afbefb7e845a505",
-  "built": "2026-09-02T19:53:15Z",
+  "wzdb_sha256": "d6587b0510896675a7c5bf2ea153eef66b165a4323c153fc1b46ac83ba7a8fd6",
+  "built": "2026-09-03T20:13:53Z",
   "stats": {
     "rows": 317396,
-    "players": 5262,
+    "players": 5199,
     "seasons": 17,
     "from": 2010,
     "to": 2026,
     "events": 35102
   },
-  "source_modified": "Wed, 02 Sep 2026 19:41:19 GMT"
+  "source_modified": "Thu, 03 Sep 2026 19:56:14 GMT"
 }
