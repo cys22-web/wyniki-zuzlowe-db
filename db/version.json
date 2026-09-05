@@ -15,7 +15,7 @@
   },
   "source_sha256": "13ec1430b3ddbd700ca4510f9f79c06ec41d7345f3074f5adbd4c9e49074fbef",
   "source_hash": "13ec1430b3dd",
-  "generator_sha256": "4217be3d5cefa1899f1f50114bbf99118610f1ca2506a4a3d199faead1d59c5f",
+  "generator_sha256": "bfd50a67e0ab1c266503db4b7df2b39da6b9e57a9b2232bdfec6d6d30119a0c1",
   "event_date_source": "PL2.xlsm:Q/Data",
   "date_map_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
   "event_dates_sha256": "91fa0a1261f8052fdf49dc52f8251251258a5def5d924eea73c85779b476cca1",
@@ -47,8 +47,8 @@
     "json_conflicts": 0,
     "conflicts": 0
   },
-  "wzdb_sha256": "d6587b0510896675a7c5bf2ea153eef66b165a4323c153fc1b46ac83ba7a8fd6",
-  "built": "2026-09-03T20:13:53Z",
+  "wzdb_sha256": "b2a05e6369718fbc11884b9f2f7136ab05f09253bba74fb9bdd19ef22aeeda4e",
+  "built": "2026-09-05T22:27:23Z",
   "stats": {
     "rows": 317396,
     "players": 5199,
