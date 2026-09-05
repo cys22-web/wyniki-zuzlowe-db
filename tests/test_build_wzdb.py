@@ -8,6 +8,7 @@ from openpyxl.utils.datetime import to_excel
 from scripts.build_wzdb import (
     StringTable,
     build_database,
+    build_version_metadata,
     event_component,
     event_date_assignment_stats,
     record_value,
@@ -59,6 +60,33 @@ class UpdateWorkflowTests(unittest.TestCase):
         self.assertNotIn("sha256sum data/event_dates_2026.json", workflow)
         self.assertIn("--require-complete-event-dates", workflow)
         self.assertIn("--expect-date-conflicts 0", workflow)
+
+
+class VersionMetadataTests(unittest.TestCase):
+    def test_generated_version_manifest_contains_database_credits(self) -> None:
+        metadata = build_version_metadata(
+            source_url="https://example.test/source.xlsm",
+            source_sha256="a" * 64,
+            generator_sha256="b" * 64,
+            event_dates_path=Path("missing-event-dates.json"),
+            date_stats={"dated_physical_events": 1},
+            wzdb_sha256="c" * 64,
+            built="2026-09-01T04:58:20Z",
+            stats={"rows": 1},
+        )
+
+        self.assertEqual(
+            metadata["credits"],
+            {
+                "database_creator": "Adrian Cysarz",
+                "database_owner": "Adrian Cysarz",
+                "database_development": ["Adrian Cysarz", "Dawid Cysarz"],
+                "technical_development": "Dawid Cysarz",
+                "application_development": "Dawid Cysarz",
+                "copyright": "© 2026 Adrian Cysarz i Dawid Cysarz",
+                "rights": "All rights reserved",
+            },
+        )
 
 
 class RecordLayoutTests(unittest.TestCase):

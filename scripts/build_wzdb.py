@@ -36,6 +36,15 @@ except ModuleNotFoundError:  # Direct execution: python scripts/build_wzdb.py
 
 
 FORMAT_VERSION = 4
+VERSION_CREDITS = {
+    "database_creator": "Adrian Cysarz",
+    "database_owner": "Adrian Cysarz",
+    "database_development": ["Adrian Cysarz", "Dawid Cysarz"],
+    "technical_development": "Dawid Cysarz",
+    "application_development": "Dawid Cysarz",
+    "copyright": "© 2026 Adrian Cysarz i Dawid Cysarz",
+    "rights": "All rights reserved",
+}
 FIRST_SEASON = 2010
 LAST_SEASON = 2026
 PLAYER_SHEET = "Zawodnicy"
@@ -655,6 +664,44 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def build_version_metadata(
+    *,
+    source_url: str,
+    source_sha256: str,
+    generator_sha256: str,
+    event_dates_path: Path,
+    date_stats: dict[str, Any],
+    wzdb_sha256: str,
+    built: str,
+    stats: dict[str, Any],
+    source_modified: str | None = None,
+) -> dict[str, Any]:
+    """Build the published version manifest without altering WZDB contents."""
+    event_dates_sha256 = (
+        sha256_file(event_dates_path) if event_dates_path.is_file() else None
+    )
+    version = {
+        "version": FORMAT_VERSION,
+        "source": source_url,
+        "credits": VERSION_CREDITS,
+        "source_sha256": source_sha256,
+        "source_hash": source_sha256[:12],
+        "generator_sha256": generator_sha256,
+        "event_date_source": "PL2.xlsm:Q/Data",
+        "date_map_sha256": event_dates_sha256,
+        # Retain the earlier field for consumers that already inspected it.
+        "event_dates_sha256": event_dates_sha256,
+        "dated_event_fragments": date_stats["dated_physical_events"],
+        "date_stats": date_stats,
+        "wzdb_sha256": wzdb_sha256,
+        "built": built,
+        "stats": stats,
+    }
+    if source_modified:
+        version["source_modified"] = source_modified
+    return version
+
+
 def main() -> int:
     args = parse_args()
     source_path = args.source_xlsm.resolve()
@@ -699,28 +746,17 @@ def main() -> int:
     atomic_write(args.output, wzdb_bytes)
     wzdb_sha256 = hashlib.sha256(wzdb_bytes).hexdigest()
 
-    version = {
-        "version": FORMAT_VERSION,
-        "source": args.source_url,
-        "source_sha256": source_sha256,
-        "source_hash": source_sha256[:12],
-        "generator_sha256": generator_sha256,
-        "event_date_source": "PL2.xlsm:Q/Data",
-        "date_map_sha256": (
-            sha256_file(event_dates_path) if event_dates_path.is_file() else None
-        ),
-        # Retain the earlier field for consumers that already inspected it.
-        "event_dates_sha256": (
-            sha256_file(event_dates_path) if event_dates_path.is_file() else None
-        ),
-        "dated_event_fragments": date_stats["dated_physical_events"],
-        "date_stats": date_stats,
-        "wzdb_sha256": wzdb_sha256,
-        "built": built,
-        "stats": database["stats"],
-    }
-    if args.source_modified:
-        version["source_modified"] = args.source_modified
+    version = build_version_metadata(
+        source_url=args.source_url,
+        source_sha256=source_sha256,
+        generator_sha256=generator_sha256,
+        event_dates_path=event_dates_path,
+        date_stats=date_stats,
+        wzdb_sha256=wzdb_sha256,
+        built=built,
+        stats=database["stats"],
+        source_modified=args.source_modified,
+    )
     atomic_write(
         args.version_file,
         (json.dumps(version, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
