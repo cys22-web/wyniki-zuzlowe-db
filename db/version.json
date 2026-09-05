@@ -1,6 +1,18 @@
 {
   "version": 4,
   "source": "https://drive.google.com/uc?id=15p7L2RPKcSMIVzoZXkGDkZZqR5xlBA9K&export=download",
+  "credits": {
+    "database_creator": "Adrian Cysarz",
+    "database_owner": "Adrian Cysarz",
+    "database_development": [
+      "Adrian Cysarz",
+      "Dawid Cysarz"
+    ],
+    "technical_development": "Dawid Cysarz",
+    "application_development": "Dawid Cysarz",
+    "copyright": "© 2026 Adrian Cysarz i Dawid Cysarz",
+    "rights": "All rights reserved"
+  },
   "source_sha256": "13ec1430b3ddbd700ca4510f9f79c06ec41d7345f3074f5adbd4c9e49074fbef",
   "source_hash": "13ec1430b3dd",
   "generator_sha256": "4217be3d5cefa1899f1f50114bbf99118610f1ca2506a4a3d199faead1d59c5f",

@@ -53,3 +53,15 @@ python scripts/build_wzdb.py /ścieżka/do/PL2.xlsm \
 Pipeline produkcyjny dodatkowo używa `--require-complete-event-dates --expect-date-conflicts 0`. Opcjonalne `--event-dates` służy wyłącznie porównaniu z historyczną mapą; może wskazywać nieistniejący plik.
 
 Konwerter zapisuje pliki atomowo i nie modyfikuje źródłowego skoroszytu.
+
+## Autorzy i prawa
+
+**Twórca i właściciel bazy:** Adrian Cysarz
+
+**Rozwój bazy:** Adrian Cysarz i Dawid Cysarz
+
+**Cyfryzacja i rozwój techniczny:** Dawid Cysarz
+
+© 2026 Adrian Cysarz i Dawid Cysarz. Wszelkie prawa zastrzeżone.
+
+Szczegółowe informacje: [DATABASE_RIGHTS.md](DATABASE_RIGHTS.md)
